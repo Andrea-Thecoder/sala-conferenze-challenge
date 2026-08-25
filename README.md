@@ -6,12 +6,11 @@ Questa challenge serve per valutare il tuo livello come backend developer.
 
 Non è un test da "passare", ma uno strumento per osservare:
 
-- come affronti un problema;
-- come progetti una soluzione;
-- come strutturi dati, API e autorizzazioni;
-- come prendi decisioni.
+- **come affronti un problema;**
+- **come prendi decisioni;**
+- **come strutturi una soluzione.**
 
-Non esiste una soluzione unica: esistono scelte diverse, e ci interessa capire come arrivi alle tue.
+Non esiste una soluzione giusta: esistono scelte diverse, e ci interessa capire come arrivi alle tue.
 
 A differenza di molte challenge tecniche, non troverai istruzioni passo-passo.
 
@@ -25,14 +24,14 @@ Stai lavorando al backend di una piccola piattaforma per la gestione di sale per
 
 La piattaforma mette in relazione due tipologie di utenti:
 
-- **organizzatori**, che possono creare e gestire le proprie sale;
-- **clienti**, che possono consultare le sale disponibili e richiederne la prenotazione.
+- organizzatori, che possono creare e gestire le proprie sale;
+- clienti, che possono consultare le sale disponibili e richiederne la prenotazione.
 
 Il sistema deve quindi gestire utenti, ruoli, sale e prenotazioni.
 
 Alcuni aspetti non sono completamente definiti.
 
-Come in un contesto reale, dovrai fare delle scelte progettuali e, quando necessario, esplicitare le tue assunzioni.
+Come in un contesto reale, dovrai gestire ambiguità e prendere decisioni.
 
 ---
 
@@ -44,10 +43,7 @@ Non è necessario completare tutto.
 
 - capire cosa fare;
 - decidere cosa non fare;
-- motivare le scelte;
-- progettare correttamente le relazioni tra i dati;
-- considerare sicurezza e autorizzazioni;
-- gestire i casi limite più importanti.
+- motivare le scelte.
 
 Se qualcosa non è chiaro, puoi fare delle assunzioni: esplicitarle è parte della valutazione.
 
@@ -55,11 +51,11 @@ La capacità di prioritizzare e gestire le ambiguità è parte centrale della ch
 
 ---
 
-## 📌 Minimo atteso
+## 📌 Minimo atteso (per orientarti)
 
 Se non sai da dove partire, una soluzione base potrebbe includere:
 
-- un database con utenti, sale e prenotazioni;
+- database con utenti, sale e prenotazioni;
 - gestione dei ruoli;
 - autenticazione;
 - API per creare e consultare le sale;
@@ -74,21 +70,18 @@ Il resto è a tua discrezione.
 
 ## 🚀 Come partecipare
 
-Crea un fork del repository.
-
-Lavora sulla tua copia.
-
-Completa la challenge.
-
-Invia il link alla tua repository GitHub.
+1. Crea un fork del repository.
+2. Lavora sulla tua copia.
+3. Completa la challenge.
+4. Invia il link alla tua repository GitHub.
 
 ---
 
-# 🧩 Task
+## 🧩 Task
 
 Costruisci un piccolo backend per gestire sale per eventi e relative prenotazioni.
 
-## 1. Database & Data Modeling
+### 1. Database & Data Modeling
 
 Progetta un database che permetta di rappresentare almeno:
 
@@ -108,9 +101,7 @@ Puoi scegliere liberamente:
 
 Non è necessario costruire un sistema complesso: il modello deve essere coerente con il problema.
 
----
-
-## 2. Authentication & Authorization
+### 2. Authentication & Authorization
 
 Implementa un sistema di autenticazione e gestione dei ruoli.
 
@@ -129,9 +120,7 @@ Ad esempio:
 
 La gestione dei permessi deve essere effettuata lato backend.
 
----
-
-## 3. API
+### 3. API Design
 
 Definisci le API necessarie per utilizzare il sistema.
 
@@ -151,9 +140,7 @@ Puoi scegliere liberamente:
 
 Le API devono essere coerenti e avere un comportamento prevedibile.
 
----
-
-## 4. Security, Validation & Error Handling
+### 4. Security, Validation & Error Handling
 
 Gestisci correttamente gli input ricevuti dal client.
 
@@ -166,9 +153,7 @@ Prevedi almeno:
 
 Considera inoltre eventuali problemi di sicurezza derivanti dalla possibilità di accedere o modificare dati appartenenti ad altri utenti.
 
----
-
-## 5. Prenotazioni e conflitti temporali
+### 5. Prenotazioni e conflitti temporali
 
 Una sala non può essere prenotata se risulta già occupata nello stesso intervallo temporale.
 
@@ -188,12 +173,12 @@ Non conta solo che le funzionalità siano presenti.
 
 Verrà valutato anche:
 
-- come hai progettato il database;
-- come hai strutturato le API;
-- come hai gestito autenticazione e autorizzazione;
-- come hai affrontato sicurezza, validazione ed errori;
-- come hai organizzato il codice;
-- come hai gestito il vincolo temporale delle prenotazioni.
+- **come hai progettato il database;**
+- **come hai strutturato le API;**
+- **come hai gestito autenticazione e autorizzazione;**
+- **come hai affrontato sicurezza, validazione ed errori;**
+- **come hai organizzato il codice;**
+- **come hai gestito il vincolo temporale delle prenotazioni.**
 
 Una soluzione tecnicamente funzionante ma fragile, poco sicura o difficile da mantenere sarà quindi valutata di conseguenza.
 
@@ -205,8 +190,7 @@ Scrivi brevemente (3–5 righe):
 
 - cosa faresti per primo;
 - cosa ritieni più importante;
-- eventuali dubbi o ambiguità;
-- eventuali assunzioni che hai deciso di fare.
+- eventuali dubbi o ambiguità.
 
 Non serve essere esaustivi: ci interessa il tuo processo di ragionamento.
 
@@ -214,14 +198,14 @@ Non serve essere esaustivi: ci interessa il tuo processo di ragionamento.
 
 ## 🧠 README finale
 
-Nel README finale, spiega sinteticamente:
+Nel README (breve), spiega sinteticamente:
 
-- cosa hai deciso di fare e perché;
-- come hai strutturato il database;
-- come hai gestito autenticazione e autorizzazione;
-- cosa non hai fatto e perché;
-- eventuali compromessi;
-- cosa miglioreresti con più tempo.
+- **cosa hai deciso di fare e perché;**
+- **come hai strutturato il database e perché;**
+- **come hai gestito autenticazione e autorizzazione;**
+- **cosa non hai fatto e perché;**
+- **eventuali compromessi;**
+- **cosa miglioreresti con più tempo.**
 
 Non è richiesta una documentazione lunga: poche righe chiare sono sufficienti.
 
@@ -259,8 +243,7 @@ Non è necessario completare tutto perfettamente.
 Invia:
 
 - il link alla repository GitHub;
-- il codice funzionante;
-- il README con le principali decisioni progettuali.
+- il codice funzionante.
 
 ---
 
@@ -268,12 +251,12 @@ Invia:
 
 Riceverai un feedback strutturato su:
 
-- Database & Data Modeling;
-- Authentication & Authorization;
-- API Design;
-- Security, Validation & Error Handling;
-- Code Quality;
-- capacità decisionale.
+- **Database & Data Modeling**
+- **Authentication & Authorization**
+- **API Design**
+- **Security, Validation & Error Handling**
+- **Code Quality**
+- **Thinking**
 
 La valutazione tiene conto sia dell'esecuzione tecnica sia del modo in cui prendi decisioni.
 
@@ -285,6 +268,4 @@ Dopo la challenge potrai lasciare un feedback su:
 
 - difficoltà;
 - chiarezza;
-- realismo rispetto a un colloquio backend;
-- chiarezza dei requisiti;
-- tempo necessario per completarla.
+- realismo rispetto a un colloquio backend.
