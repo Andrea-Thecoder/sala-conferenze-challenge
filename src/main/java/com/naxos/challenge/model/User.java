@@ -24,7 +24,7 @@ import java.util.UUID;
 public class User extends AbstractAudit {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false, length = 100)

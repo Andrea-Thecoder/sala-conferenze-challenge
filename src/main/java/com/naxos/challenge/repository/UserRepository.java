@@ -12,4 +12,8 @@ import com.naxos.challenge.model.User;
 public interface UserRepository extends GenericRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
+
+    User getById(UUID id);
+
+    boolean existsByEmail(String email);
 }

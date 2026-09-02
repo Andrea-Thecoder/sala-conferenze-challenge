@@ -1,10 +1,10 @@
 package com.naxos.challenge.repository;
 
+import io.ebean.Transaction;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
-
-import com.naxos.challenge.config.TransactionScope;
 
 public interface GenericRepository<T, ID extends Serializable> {
 
@@ -12,11 +12,11 @@ public interface GenericRepository<T, ID extends Serializable> {
 
     List<T> findAll(int page, int size);
 
-    void save (T entity, TransactionScope tx);
+    void save(T entity, Transaction tx);
 
-    T update(ID id, TransactionScope tx);
+    T update(T entity, Transaction tx);
 
-    void delete(ID id, TransactionScope tx);
+    void delete(ID id, Transaction tx);
 
     long count();
 }

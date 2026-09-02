@@ -19,10 +19,10 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class RefreshToken extends AbstractAudit {
+public class AppRefreshToken extends AbstractAudit {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -43,9 +43,8 @@ public class RefreshToken extends AbstractAudit {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "replaced_by_id")
-    private RefreshToken replacedByToken;
+    private AppRefreshToken replacedByToken;
 
-    @Transient
     public boolean isActive() {
         return revokedAt == null && expiresAt.isAfter(LocalDateTime.now());
     }

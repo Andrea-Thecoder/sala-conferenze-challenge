@@ -23,7 +23,7 @@ import java.util.UUID;
 public class Booking extends AbstractAudit {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
     private UUID id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -46,7 +46,6 @@ public class Booking extends AbstractAudit {
     @Column(nullable = false)
     private boolean paid = false;
 
-    @Transient
     public long getBookedHours() {
         return Duration.between(startDateTime, endDateTime).toHours();
     }

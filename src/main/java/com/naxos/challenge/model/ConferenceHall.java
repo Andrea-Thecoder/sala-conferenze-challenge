@@ -16,7 +16,7 @@ import java.util.UUID;
 public class ConferenceHall extends AbstractAudit {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false)
