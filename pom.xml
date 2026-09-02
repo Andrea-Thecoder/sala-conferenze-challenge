@@ -47,15 +47,12 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm-panache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.ebean</groupId>
+            <artifactId>ebean</artifactId>
+            <version>${io.ebean.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -72,6 +69,11 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.ebean</groupId>
+            <artifactId>ebean-ddl-generator</artifactId>
+            <version>${io.ebean.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -124,12 +126,6 @@
             <artifactId>quarkus-junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <scope>test</scope>
-        </dependency>
-
 
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
@@ -208,7 +204,7 @@
                         </goals>
                         <phase>process-classes</phase>
                         <configuration>
-                            <packages>it.personal.bss.model</packages>
+                            <packages>com.naxos.challenge.model</packages>
                         </configuration>
                     </execution>
                 </executions>
