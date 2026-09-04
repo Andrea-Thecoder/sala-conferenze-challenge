@@ -59,13 +59,14 @@ public class UserRegistrationDTO {
     @Schema(description = "Role requested at registration", example = "CUSTOMER")
     private Role role;
 
-    public User toEntity(){
+    public User toEntity() {
         User user = new User();
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEmail(email);
         user.setPhoneNumber(phoneNumber);
         user.setRole(role);
+        user.setActive(false);
         return user;
 
     }

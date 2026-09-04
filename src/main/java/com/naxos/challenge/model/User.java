@@ -47,7 +47,7 @@ public class User extends AbstractAudit {
     private Role role;
 
     @Column(nullable = false)
-    private boolean active = true;
+    private boolean active = false;
 
 
 }

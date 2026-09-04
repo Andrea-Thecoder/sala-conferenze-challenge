@@ -9,7 +9,6 @@ import com.naxos.challenge.model.AppRefreshToken;
 import com.naxos.challenge.model.User;
 import com.naxos.challenge.model.enumerator.Role;
 import com.naxos.challenge.repository.AppRefreshTokenRepository;
-import com.naxos.challenge.repository.UserRepository;
 import com.naxos.challenge.security.AccessTokenBlacklist;
 import com.naxos.challenge.security.PasswordEncoder;
 import com.naxos.challenge.security.RefreshTokenHasher;
@@ -33,7 +32,7 @@ import java.util.UUID;
 public class AuthService {
 
     @Inject
-    UserRepository userRepository;
+    UserService userService;
 
     @Inject
     AppRefreshTokenRepository refreshTokenRepository;
@@ -53,17 +52,7 @@ public class AuthService {
 
     public UUID registerUser(UserRegistrationDTO dto) {
         log.info("AuthService - registerUser : Starting Registration for new user.");
-        User user = dto.toEntity();
-        user.setPassword(PasswordEncoder.hash(dto.getPassword(), authConfig.bcryptRounds()));
-        try (Transaction tx = database.beginTransaction()) {
-            userRepository.save(user, tx);
-            tx.commit();
-        } catch (Exception e) {
-            log.error("AuthService - registerUser : Error registering user", e);
-            throw new ServiceException("Error while registering user. Try again later");
-        }
-        log.info("AuthService - registerUser : Ending Registration for new user with ID {}", user.getId());
-        return user.getId();
+        return userService.createUser(dto);
     }
 
     public AuthTokenDTO login(LoginCredentialsDTO credentials) {
@@ -92,14 +81,13 @@ public class AuthService {
 
     public AuthTokenDTO refresh(String rawRefreshToken) {
         log.info("AuthService - refresh : Refresh attempt");
-
-        AppRefreshToken current = refreshTokenRepository.findByTokenHash(RefreshTokenHasher.hash(rawRefreshToken))
-                .orElseThrow(() -> {
-                    log.error("AuthService - refresh : Refresh token not found");
-                    return new ServiceException("Invalid refresh token");
-                });
-
         try (Transaction tx = database.beginTransaction()) {
+            AppRefreshToken current = refreshTokenRepository.findByTokenHashForUpdate(RefreshTokenHasher.hash(rawRefreshToken), tx)
+                    .orElseThrow(() -> {
+                        log.error("AuthService - refresh : Refresh token not found");
+                        return new ServiceException("Invalid refresh token");
+                    });
+
             if (current.getRevokedAt() != null) {
                 log.error("AuthService - refresh : Reuse detected for family {}, revoking entire family", current.getFamilyId());
                 refreshTokenRepository.revokeAllByFamilyId(current.getFamilyId(), tx);
@@ -124,7 +112,7 @@ public class AuthService {
 
             current.setRevokedAt(LocalDateTime.now());
             current.setReplacedByToken(newToken);
-            refreshTokenRepository.save(current, tx);
+            refreshTokenRepository.update(current, tx);
 
             tx.commit();
             log.info("AuthService - refresh : Rotated refresh token for user {}", user.getId());
@@ -138,7 +126,7 @@ public class AuthService {
         refreshTokenRepository.findByTokenHash(RefreshTokenHasher.hash(rawRefreshToken))
                 .ifPresentOrElse(token -> {
                     try (Transaction tx = database.beginTransaction()) {
-                        refreshTokenRepository.revoke(token.getId(), tx);
+                        refreshTokenRepository.revoke(token, tx);
                         tx.commit();
                     }
                     log.info("AuthService - logout : Refresh token revoked");
@@ -148,39 +136,71 @@ public class AuthService {
     }
 
 
-    public void revokeAllSessions(UUID userId) {
-        log.info("AuthService - revokeAllSessions : Revoking all sessions for user {}", userId);
+    public void activateUser(UUID userId) {
+        log.info("AuthService - activateUser : Activating user {}", userId);
+        userService.activateUser(userId);
+        log.info("AuthService - activateUser : User {} activated", userId);
+    }
+
+    public void revokeUser(UUID userId) {
+        log.info("AuthService - revokeUser : Revoking user {}", userId);
         try (Transaction tx = database.beginTransaction()) {
-            refreshTokenRepository.revokeAllByUserId(userId, tx);
+            userService.revokeUser(userId, tx);
+            revokeAllSessions(userId, tx);
+            tx.commit();
+            log.info("AuthService - revokeUser : User {} revoked", userId);
+        } catch (Exception e) {
+            log.error("AuthService - revokeUser : Error revoking user {}", userId, e);
+            throw new ServiceException("Error revoking user. Try again later.");
+        }
+        blacklistAllAccessTokensForUser(userId);
+    }
+
+    public void revokeAllSessions(UUID userId) {
+        try (Transaction tx = database.beginTransaction()) {
+            revokeAllSessions(userId, tx);
             tx.commit();
         }
+        blacklistAllAccessTokensForUser(userId);
+    }
+
+    private void revokeAllSessions(UUID userId, Transaction tx) {
+        log.info("AuthService - revokeAllSessions : Revoking all sessions for user {}", userId);
+        refreshTokenRepository.revokeAllByUserId(userId, tx);
+    }
+
+    private void blacklistAllAccessTokensForUser(UUID userId) {
         long ttlSeconds = authConfig.jwtExpirationMinutes() * 60;
         try {
             accessTokenBlacklist.revokeAllTokensForUser(userId.toString(), ttlSeconds);
-            log.info("AuthService - revokeAllSessions : All refresh tokens revoked, access tokens issued before now blacklisted for {}s", ttlSeconds);
+            log.info("AuthService - blacklistAllAccessTokensForUser : Access tokens issued before now blacklisted for {}s for user {}", ttlSeconds, userId);
         } catch (Exception e) {
-            log.error("AuthService - revokeAllSessions : Could not blacklist access tokens for user {} (Redis unreachable?), refresh token revocation still applied", userId, e);
+            log.error("AuthService - blacklistAllAccessTokensForUser : Could not blacklist access tokens for user {} (Redis unreachable?), refresh token revocation still applied", userId, e);
         }
     }
 
     private void blacklistCurrentAccessToken() {
-        String jti = jwt.getTokenID();
-        if (jti == null) {
-            log.info("AuthService - logout : No access token in request context, nothing to blacklist");
-            return;
-        }
-        long ttlSeconds = jwt.getExpirationTime() - Instant.now().getEpochSecond();
         try {
+            String jti = jwt.getTokenID();
+            if (jti == null) {
+                log.info("AuthService - logout : No access token in request context, nothing to blacklist");
+                return;
+            }
+            long ttlSeconds = jwt.getExpirationTime() - Instant.now().getEpochSecond();
+            if (ttlSeconds <= 0) {
+                log.info("AuthService - logout : Access token {} already expired, nothing to blacklist", jti);
+                return;
+            }
             accessTokenBlacklist.blacklistToken(jti, ttlSeconds);
             log.info("AuthService - logout : Access token {} blacklisted for {}s", jti, ttlSeconds);
         } catch (Exception e) {
-            // Il refresh token è già revocato su Postgres (fatto sopra, non annullabile
-            // da qui): quello è il danno più grande e più duraturo, già evitato. Redis
-            // giù per il blacklist dell'access token è un buco residuo di al massimo
-            // pochi minuti (la durata dell'access token), non un fallimento totale del
-            // logout — non lo rilancio, altrimenti il chiamante crede che nulla sia
-            // stato revocato quando in realtà la parte più importante lo è stata.
-            log.error("AuthService - logout : Could not blacklist access token {} (Redis unreachable?), refresh token revocation still applied", jti, e);
+            // Logout è pubblico (proactive auth disattivata, vedi application.properties):
+            // il client può chiamarlo con un access token scaduto/assente/malformato, che è
+            // anzi il caso comune (l'access token dura 5-15 min, il refresh 60). L'accesso a
+            // `jwt` qui può quindi fallire per token non valido, non solo la chiamata a Redis:
+            // in ogni caso è best-effort, la revoca del refresh token sopra è già avvenuta ed
+            // è la parte che conta davvero.
+            log.warn("AuthService - logout : Could not blacklist access token (missing/invalid/expired, or Redis unreachable), refresh token revocation still applied", e);
         }
     }
 
@@ -195,7 +215,7 @@ public class AuthService {
     }
 
     private User getUserByEmail(LoginCredentialsDTO credentials) {
-        return userRepository.findByEmail(credentials.getEmail())
+        return userService.findByEmail(credentials.getEmail())
                 .filter(u -> PasswordEncoder.matches(credentials.getPassword(), u.getPassword()))
                 .orElseThrow(() -> {
                     log.error("AuthService - getUserByEmail : User not found for {}", credentials.getEmail());

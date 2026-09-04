@@ -1,9 +1,12 @@
 package com.naxos.challenge.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.ebean.Model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -19,11 +22,17 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AppRefreshToken extends AbstractAudit {
+public class AppRefreshToken extends Model {
 
     @Id
     @GeneratedValue
     private UUID id;
+
+    @Version
+    @Schema(hidden = true)
+    @JsonIgnore
+    @Column(name = "version", nullable = false)
+    private Long version;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_app_id", nullable = false)

@@ -14,7 +14,7 @@ public interface GenericRepository<T, ID extends Serializable> {
 
     void save(T entity, Transaction tx);
 
-    T update(T entity, Transaction tx);
+    void update(T entity, Transaction tx);
 
     void delete(ID id, Transaction tx);
 

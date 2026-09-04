@@ -47,10 +47,9 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User update(User entity, Transaction tx) {
+    public void update(User entity, Transaction tx) {
         log.info("UserRepository - update: Update user with id {}", entity.getId());
         entity.update(tx);
-        return entity;
     }
 
     @Override
@@ -68,6 +67,11 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existsByEmail(String email) {
         return database.find(User.class).where().eq("email", email).exists();
+    }
+
+    @Override
+    public boolean existsByPhoneNumber(String phoneNumber) {
+        return database.find(User.class).where().eq("phoneNumber", phoneNumber).exists();
     }
 
     @Override

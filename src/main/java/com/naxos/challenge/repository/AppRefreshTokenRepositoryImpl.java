@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AppRefreshTokenRepositoryImpl implements AppRefreshTokenRepository {
 
     @Inject
-    Database database;
+    Database db;
 
     @Override
     public void save(AppRefreshToken entity, Transaction tx) {
@@ -25,56 +25,72 @@ public class AppRefreshTokenRepositoryImpl implements AppRefreshTokenRepository 
     }
 
     @Override
+    public void update(AppRefreshToken entity, Transaction tx) {
+        entity.update(tx);
+    }
+
+    @Override
     public Optional<AppRefreshToken> findByTokenHash(String tokenHash) {
-        return database.find(AppRefreshToken.class)
+        return db.find(AppRefreshToken.class)
+                .fetch("user")
+                .fetch("replacedByToken")
                 .where().eq("tokenHash", tokenHash)
                 .findOneOrEmpty();
     }
 
     @Override
-    public void revoke(UUID id, Transaction tx) {
-        log.info("AppRefreshTokenRepository - revoke: Revoking refresh token {}", id);
-        AppRefreshToken token = findById(id);
-        if (token == null || token.getRevokedAt() != null) {
-            return;
-        }
-        token.setRevokedAt(LocalDateTime.now());
-        token.save(tx);
+    public Optional<AppRefreshToken> findByTokenHashForUpdate(String tokenHash, Transaction tx) {
+        return db.find(AppRefreshToken.class)
+                .forUpdate()
+                .fetch("user")
+                .fetch("replacedByToken")
+                .where().eq("tokenHash", tokenHash)
+                .usingTransaction(tx)
+                .findOneOrEmpty();
     }
 
     @Override
-    public void revokeAllByFamilyId(UUID familyId, Transaction tx) {
+    public void revoke(AppRefreshToken entity, Transaction tx) {
+        if (entity.getRevokedAt() != null) {
+            log.info("AppRefreshTokenRepository - revoke: Token {} already revoked, nothing to do", entity.getId());
+            return;
+        }
+        log.info("AppRefreshTokenRepository - revoke: Revoking refresh token {}", entity.getId());
+        entity.setRevokedAt(LocalDateTime.now());
+        entity.update(tx);
+    }
+
+    @Override
+    public List<AppRefreshToken> revokeAllByFamilyId(UUID familyId, Transaction tx) {
         log.info("AppRefreshTokenRepository - revokeAllByFamilyId: Revoking family {}", familyId);
         List<AppRefreshToken> activeTokens = findAllByFamilyId(familyId);
         LocalDateTime now = LocalDateTime.now();
         for (AppRefreshToken token : activeTokens) {
             token.setRevokedAt(now);
-            token.save(tx);
+            token.update(tx);
         }
+        return activeTokens;
     }
 
     @Override
-    public void revokeAllByUserId(UUID userId, Transaction tx) {
+    public List<AppRefreshToken> revokeAllByUserId(UUID userId, Transaction tx) {
         log.info("AppRefreshTokenRepository - revokeAllByUserId: Revoking all sessions for user {}", userId);
-        List<AppRefreshToken> activeTokens = database.find(AppRefreshToken.class)
+        List<AppRefreshToken> activeTokens = db.find(AppRefreshToken.class)
                 .where().eq("user.id", userId)
                 .isNull("revokedAt")
                 .findList();
         LocalDateTime now = LocalDateTime.now();
         for (AppRefreshToken token : activeTokens) {
             token.setRevokedAt(now);
-            token.save(tx);
+            token.update(tx);
         }
+        return activeTokens;
     }
 
     private List<AppRefreshToken> findAllByFamilyId(UUID familyId) {
-        return database.find(AppRefreshToken.class)
+        return db.find(AppRefreshToken.class)
                 .where().eq("familyId", familyId)
                 .isNull("revokedAt")
                 .findList();
-    }
-
-    private AppRefreshToken findById(UUID id) {
-        return database.find(AppRefreshToken.class, id);
     }
 }

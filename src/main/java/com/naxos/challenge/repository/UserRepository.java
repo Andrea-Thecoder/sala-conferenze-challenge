@@ -4,6 +4,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.naxos.challenge.model.User;
+import io.ebean.Database;
+import jakarta.inject.Inject;
 
 /**
  * Estende il contratto generico aggiungendo le query specifiche del dominio "User",
@@ -16,4 +18,6 @@ public interface UserRepository extends GenericRepository<User, UUID> {
     User getById(UUID id);
 
     boolean existsByEmail(String email);
+
+    boolean existsByPhoneNumber(String phoneNumber);
 }
