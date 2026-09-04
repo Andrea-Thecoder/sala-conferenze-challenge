@@ -1,16 +1,19 @@
 package com.naxos.challenge.api;
 
 import com.naxos.challenge.dto.SimpleResultDTO;
-import com.naxos.challenge.dto.user.AuthTokenDTO;
-import com.naxos.challenge.dto.user.LoginCredentialsDTO;
-import com.naxos.challenge.dto.user.RefreshTokenDTO;
+import com.naxos.challenge.dto.auth.AuthTokenDTO;
+import com.naxos.challenge.dto.auth.LoginCredentialsDTO;
+import com.naxos.challenge.dto.auth.RefreshTokenDTO;
 import com.naxos.challenge.dto.user.UserRegistrationDTO;
 import com.naxos.challenge.exception.ExceptionResponse;
 import com.naxos.challenge.services.AuthService;
+import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -109,7 +112,7 @@ public class AuthResource {
         return SimpleResultDTO.<Void>builder().message("Logout successful").build();
     }
 
-    @POST
+    @PATCH
     @Path("/users/{userId}/activate")
     @RolesAllowed("ADMIN")
     @Operation(summary = "Activate a registered user", description = "Administrative gate for /register: every new account is created inactive and cannot login until an ADMIN reviews and activates it. This is also what stops a self-registered ADMIN/ORGANIZER role from being usable without explicit review. Requires the ADMIN role.")
@@ -130,10 +133,10 @@ public class AuthResource {
         return SimpleResultDTO.<Void>builder().message("User activated").build();
     }
 
-    @POST
+    @DELETE
     @Path("/users/{userId}/revoke")
     @RolesAllowed("ADMIN")
-    @Operation(summary = "Revoke a user's account", description = "Administrative action for a compromised or no-longer-trusted account: disables login (active=false) and sets the role to REVOKED, so the user is denied even if some other flow only checks the role. Does NOT by itself invalidate existing sessions — pair with /sessions/revoke-all/{userId} to also kill active refresh tokens and blacklist outstanding access tokens. Requires the ADMIN role.")
+    @Operation(summary = "Revoke a user's account", description = "Administrative action for a compromised or no-longer-trusted account: disables login (active=false), sets the role to REVOKED, and atomically revokes every active refresh token for the user on Postgres — one transaction, one commit. Access tokens already issued are blacklisted on Redis right after, best-effort. Requires the ADMIN role.")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "User revoked",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
@@ -151,8 +154,27 @@ public class AuthResource {
         return SimpleResultDTO.<Void>builder().message("User revoked").build();
     }
 
-    @POST
-    @Path("/sessions/revoke-all/{userId}")
+    @DELETE
+    @Path("/users/{userId}/sessions")
+    @Authenticated
+    @Operation(summary = "Revoke my sessions", description = "Self-service \"log out everywhere\": revokes every active refresh token for the given user on Postgres and blacklists every access token issued so far on Redis. Any authenticated user may call this, but only for themselves — userId must match the caller's own subject.")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "All sessions of the user have been revoked",
+                    content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
+            @APIResponse(responseCode = "400", description = "userId does not match the caller",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @APIResponse(responseCode = "401", description = "Authentication required",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    public SimpleResultDTO<Void> revokeMySessions(
+            @Schema(description = "ID of the user whose sessions must all be revoked (must be the caller)", type = SchemaType.STRING, format = "uuid")
+            @PathParam("userId") UUID userId) {
+        authService.revokeMySessions(userId);
+        return SimpleResultDTO.<Void>builder().message("All sessions revoked").build();
+    }
+
+    @DELETE
+    @Path("/admin/users/{userId}/sessions")
     @RolesAllowed("ADMIN")
     @Operation(summary = "Revoke all sessions of a user", description = "Administrative kill-switch for a compromised or just-revoked account: revokes every active refresh token for the user on Postgres and blacklists every access token issued so far on Redis. Requires the ADMIN role.")
     @APIResponses({

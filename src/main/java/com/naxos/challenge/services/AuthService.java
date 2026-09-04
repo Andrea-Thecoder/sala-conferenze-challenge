@@ -1,8 +1,8 @@
 package com.naxos.challenge.services;
 
 import com.naxos.challenge.config.AuthConfig;
-import com.naxos.challenge.dto.user.AuthTokenDTO;
-import com.naxos.challenge.dto.user.LoginCredentialsDTO;
+import com.naxos.challenge.dto.auth.AuthTokenDTO;
+import com.naxos.challenge.dto.auth.LoginCredentialsDTO;
 import com.naxos.challenge.dto.user.UserRegistrationDTO;
 import com.naxos.challenge.exception.ServiceException;
 import com.naxos.challenge.model.AppRefreshToken;
@@ -10,6 +10,7 @@ import com.naxos.challenge.model.User;
 import com.naxos.challenge.model.enumerator.Role;
 import com.naxos.challenge.repository.AppRefreshTokenRepository;
 import com.naxos.challenge.security.AccessTokenBlacklist;
+import com.naxos.challenge.security.JwtInspector;
 import com.naxos.challenge.security.PasswordEncoder;
 import com.naxos.challenge.security.RefreshTokenHasher;
 import io.ebean.Database;
@@ -48,6 +49,9 @@ public class AuthService {
 
     @Inject
     AccessTokenBlacklist accessTokenBlacklist;
+
+    @Inject
+    JwtInspector jwtInspector;
 
 
     public UUID registerUser(UserRegistrationDTO dto) {
@@ -162,6 +166,16 @@ public class AuthService {
             tx.commit();
         }
         blacklistAllAccessTokensForUser(userId);
+    }
+
+    public void revokeMySessions(UUID userId) {
+        log.info("AuthService - revokeMySessions : Self-service session revoke requested for user {}", userId);
+        if (!jwtInspector.sameSubject(userId)) {
+            log.error("AuthService - revokeMySessions : JWT subject {} attempted to revoke sessions of user {}",
+                    jwtInspector.getSubject(), userId);
+            throw new ServiceException("Invalid user");
+        }
+        revokeAllSessions(userId);
     }
 
     private void revokeAllSessions(UUID userId, Transaction tx) {

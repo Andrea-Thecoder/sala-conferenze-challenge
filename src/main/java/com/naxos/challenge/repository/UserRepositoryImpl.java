@@ -2,11 +2,16 @@ package com.naxos.challenge.repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
+import com.naxos.challenge.dto.search.UserSearchRequest;
 import com.naxos.challenge.exception.ServiceException;
 import com.naxos.challenge.model.User;
+import com.naxos.challenge.model.enumerator.Role;
 import io.ebean.Database;
+import io.ebean.ExpressionList;
+import io.ebean.PagedList;
 import io.ebean.Transaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -79,5 +84,16 @@ public class UserRepositoryImpl implements UserRepository {
         return database.find(User.class)
                 .where().eq("email", email)
                 .findOneOrEmpty();
+    }
+
+    @Override
+    public PagedList<User> search(UserSearchRequest request, Set<Role> roleConstraint) {
+        ExpressionList<User> exl = database.find(User.class).where();
+        request.applyFilters(exl);
+        if (roleConstraint != null && !roleConstraint.isEmpty()) {
+            exl.in("role", roleConstraint);
+        }
+        request.applySortAndPagination(exl, "lastName");
+        return exl.findPagedList();
     }
 }

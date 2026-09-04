@@ -1,11 +1,13 @@
 package com.naxos.challenge.repository;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
+import com.naxos.challenge.dto.search.UserSearchRequest;
 import com.naxos.challenge.model.User;
-import io.ebean.Database;
-import jakarta.inject.Inject;
+import com.naxos.challenge.model.enumerator.Role;
+import io.ebean.PagedList;
 
 /**
  * Estende il contratto generico aggiungendo le query specifiche del dominio "User",
@@ -20,4 +22,6 @@ public interface UserRepository extends GenericRepository<User, UUID> {
     boolean existsByEmail(String email);
 
     boolean existsByPhoneNumber(String phoneNumber);
+
+    PagedList<User> search(UserSearchRequest request, Set<Role> roleConstraint);
 }

@@ -1,4 +1,4 @@
-package com.naxos.challenge.dto.user;
+package com.naxos.challenge.dto.auth;
 
 import lombok.Getter;
 import lombok.Setter;

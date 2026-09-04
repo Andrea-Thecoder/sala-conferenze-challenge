@@ -1,5 +1,6 @@
 package com.naxos.challenge.dto;
 
+import io.ebean.PagedList;
 import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -37,7 +38,6 @@ public class PagedResultDTO<T> {
         pr.setPage(page);
         return pr;
     }
-/*
     public static <T, R> PagedResultDTO<R> of(PagedList<T> list, Function<? super T, ? extends R> mapper) {
         PagedResultDTO<R> pr = new PagedResultDTO<>();
         pr.setList(list.getList().stream().map(mapper).collect(Collectors.toList()));
@@ -46,5 +46,5 @@ public class PagedResultDTO<T> {
         pr.setTotalRows(list.getTotalCount());
         pr.setPageSize(list.getPageSize());
         return pr;
-    }*/
+    }
 }
