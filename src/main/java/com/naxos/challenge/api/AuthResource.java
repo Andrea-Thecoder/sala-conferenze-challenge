@@ -4,6 +4,7 @@ import com.naxos.challenge.dto.SimpleResultDTO;
 import com.naxos.challenge.dto.auth.AuthTokenDTO;
 import com.naxos.challenge.dto.auth.LoginCredentialsDTO;
 import com.naxos.challenge.dto.auth.RefreshTokenDTO;
+import com.naxos.challenge.dto.user.RoleUpdateDTO;
 import com.naxos.challenge.dto.user.UserRegistrationDTO;
 import com.naxos.challenge.exception.ExceptionResponse;
 import com.naxos.challenge.services.AuthService;
@@ -131,6 +132,31 @@ public class AuthResource {
             @PathParam("userId") UUID userId) {
         authService.activateUser(userId);
         return SimpleResultDTO.<Void>builder().message("User activated").build();
+    }
+
+    @PATCH
+    @Path("/users/{userId}/role")
+    @RolesAllowed("ADMIN")
+    @Operation(summary = "Change a user's role", description = "Promotes/changes the role of a user (e.g. CUSTOMER to ORGANIZER) — an authorization change, not a profile edit, same category as activate/revoke. REVOKED is not accepted here — use the dedicated revoke endpoint, which also disables the account and kills active sessions. Requires the ADMIN role.")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "Role changed",
+                    content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
+            @APIResponse(responseCode = "400", description = "REVOKED role requested here (use the revoke endpoint instead)",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @APIResponse(responseCode = "401", description = "Authentication required",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @APIResponse(responseCode = "403", description = "ADMIN role required",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @APIResponse(responseCode = "404", description = "User not found",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    public SimpleResultDTO<Void> changeRole(
+            @Schema(description = "ID of the user whose role is being changed", type = SchemaType.STRING, format = "uuid")
+            @PathParam("userId") UUID userId,
+            @RequestBody(description = "New role", required = true)
+            @Valid RoleUpdateDTO dto) {
+        authService.changeRole(userId, dto);
+        return SimpleResultDTO.<Void>builder().message("Role changed").build();
     }
 
     @DELETE

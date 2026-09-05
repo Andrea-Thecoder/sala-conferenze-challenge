@@ -6,6 +6,8 @@ import java.util.UUID;
 import com.naxos.challenge.dto.PagedResultDTO;
 import com.naxos.challenge.dto.SimpleResultDTO;
 import com.naxos.challenge.dto.search.UserSearchRequest;
+import com.naxos.challenge.dto.auth.ChangePasswordDTO;
+import com.naxos.challenge.dto.user.DetailUserDTO;
 import com.naxos.challenge.dto.user.PhoneNumberUpdateDTO;
 import com.naxos.challenge.dto.user.BaseDetailUserDTO;
 import com.naxos.challenge.exception.ExceptionResponse;
@@ -63,6 +65,47 @@ public class UserResource {
         log.info("UserResource - updatePhoneNumber : Updating phone number for user {}", userId);
         userService.updatePhoneNumber(userId, dto);
         return SimpleResultDTO.<Void>builder().message("Phone number updated").build();
+    }
+
+    @PATCH
+    @Path("/{userId}/password")
+    @Operation(summary = "Change my password", description = "Changes the password of the given user; requires the current password. Always self, regardless of role — userId must match the caller's own subject. An ADMIN cannot use this to reset someone else's password, since it requires knowing the current one.")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "Password changed",
+                    content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
+            @APIResponse(responseCode = "400", description = "Wrong current password, invalid new password, or userId not matching the caller",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @APIResponse(responseCode = "401", description = "Authentication required",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    public SimpleResultDTO<Void> changePassword(
+            @Schema(description = "ID of the user changing their password (must be the caller)", type = SchemaType.STRING, format = "uuid")
+            @PathParam("userId") UUID userId,
+            @RequestBody(description = "Current and new password", required = true)
+            @Valid ChangePasswordDTO dto) {
+        log.info("UserResource - changePassword : Password change requested for user {}", userId);
+        userService.changePassword(userId, dto);
+        return SimpleResultDTO.<Void>builder().message("Password changed").build();
+    }
+
+    @GET
+    @Path("/{userId}")
+    @Operation(summary = "Get a user's detail", description = "Returns the given user's profile plus their bookings. A CUSTOMER may only view themselves (enforced server-side against the access token subject); ADMIN/ORGANIZER may view any user.")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "User detail retrieved",
+                    content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
+            @APIResponse(responseCode = "400", description = "A CUSTOMER targeting another user",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @APIResponse(responseCode = "401", description = "Authentication required",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
+            @APIResponse(responseCode = "404", description = "User not found",
+                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
+    })
+    public DetailUserDTO getUserById(
+            @Schema(description = "ID of the user to fetch", type = SchemaType.STRING, format = "uuid")
+            @PathParam("userId") UUID userId) {
+        log.info("UserResource - getUserById ");
+        return userService.getUserById(userId);
     }
 
     @GET

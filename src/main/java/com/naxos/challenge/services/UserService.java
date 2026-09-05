@@ -1,14 +1,19 @@
 package com.naxos.challenge.services;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import com.naxos.challenge.config.AuthConfig;
 import com.naxos.challenge.dto.PagedResultDTO;
+import com.naxos.challenge.dto.booking.BaseDetailBookingDTO;
 import com.naxos.challenge.dto.search.UserSearchRequest;
 import com.naxos.challenge.dto.user.BaseDetailUserDTO;
+import com.naxos.challenge.dto.user.DetailUserDTO;
+import com.naxos.challenge.dto.auth.ChangePasswordDTO;
 import com.naxos.challenge.dto.user.PhoneNumberUpdateDTO;
+import com.naxos.challenge.dto.user.RoleUpdateDTO;
 import com.naxos.challenge.dto.user.UserRegistrationDTO;
 import com.naxos.challenge.exception.ServiceException;
 import com.naxos.challenge.model.User;
@@ -41,20 +46,26 @@ public class UserService {
     @Inject
     JwtInspector jwtInspector;
 
+    @Inject
+    BookingService bookingService;
+
     public UUID createUser(UserRegistrationDTO dto) {
         log.info("UserService - save : Creating new user");
+        if (userRepository.existsByEmail(dto.getEmail())) {
+            log.error("UserService - save : Email {} already registered", dto.getEmail());
+            throw new ServiceException("Email already registered");
+        }
+        User user = dto.toEntity();
+        user.setPassword(PasswordEncoder.hash(dto.getPassword(), authConfig.bcryptRounds()));
         try (Transaction tx = database.beginTransaction()) {
-            User user = dto.toEntity();
-            user.setPassword(PasswordEncoder.hash(dto.getPassword(), authConfig.bcryptRounds()));
             userRepository.save(user, tx);
             tx.commit();
-            log.info("UserService - save : Created user {}", user.getId());
-            return user.getId();
         } catch (Exception e) {
             log.error("UserService - save : Error creating user", e);
             throw new ServiceException("Error while creating user. Try again later.");
         }
-
+        log.info("UserService - save : Created user {}", user.getId());
+        return user.getId();
     }
 
     public void updatePhoneNumber(UUID userId, PhoneNumberUpdateDTO dto) {
@@ -62,13 +73,13 @@ public class UserService {
         // Controllato subito, prima di existsByPhoneNumber: un CUSTOMER non autorizzato
         // non deve poter scoprire se un numero è già in uso su un altro account solo
         // provando ad aggiornarlo.
-        checkAccessAllowed(userId);
+        jwtInspector.checkAccessAllowed(userId);
         if (userRepository.existsByPhoneNumber(dto.getPhoneNumber())) {
             log.error("UserService - updatePhoneNumber : Phone number already in use for user {}", userId);
             throw new ServiceException("Phone number already in use");
         }
         try (Transaction tx = database.beginTransaction()) {
-            User user = getUserById(userId);
+            User user = fetchUserById(userId);
             dto.toUpdate(user);
             userRepository.update(user, tx);
             tx.commit();
@@ -76,6 +87,68 @@ public class UserService {
             log.error("UserService - updatePhoneNumber : Error updating phone number for user {}", userId, e);
             throw new ServiceException("Error while updating phone number. Try again later.");
         }
+    }
+
+    /**
+     * Sempre e solo se stessi, indipendentemente dal ruolo — a differenza di
+     * checkAccessAllowed (che lascia passare ADMIN/ORGANIZER su qualunque userId),
+     * qui la restrizione vale per tutti: serve conoscere la password attuale, quindi
+     * anche un ADMIN non può usarla per "resettare" la password di qualcun altro.
+     */
+    public void changePassword(UUID userId, ChangePasswordDTO dto) {
+        log.info("UserService - changePassword : Password change requested for user {}", userId);
+        if (!jwtInspector.sameSubject(userId)) {
+            log.error("UserService - changePassword : JWT subject {} attempted to change password of user {}",
+                    jwtInspector.getSubject(), userId);
+            throw new ServiceException("Invalid user.");
+        }
+        User user = userRepository.getUserById(userId);
+        if (!PasswordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            log.error("UserService - changePassword : Wrong current password for user {}", userId);
+            throw new ServiceException("Current password is incorrect");
+        }
+        try (Transaction tx = database.beginTransaction()) {
+            user.setPassword(PasswordEncoder.hash(dto.getNewPassword(), authConfig.bcryptRounds()));
+            userRepository.update(user, tx);
+            tx.commit();
+        } catch (Exception e) {
+            log.error("UserService - changePassword : Error changing password for user {}", userId, e);
+            throw new ServiceException("Error while changing password. Try again later.");
+        }
+        log.info("UserService - changePassword : Password changed for user {}", userId);
+    }
+
+    public DetailUserDTO getUserById(UUID userId) {
+        log.info("UserService - getUserById : Fetching user detail for {}", userId);
+        User user = fetchUserById(userId);
+        List<BaseDetailBookingDTO> bookings = bookingService.findBookingsByUserId(userId);
+        return DetailUserDTO.of(user, bookings);
+    }
+
+    public User getUserBySubject() {
+        return fetchUserById(jwtInspector.getSubject());
+    }
+
+    public User getUserEntityById(UUID userId) {
+        return fetchUserById(userId);
+    }
+
+    public void changeRole(UUID userId, RoleUpdateDTO dto) {
+        log.info("UserService - changeRole : Changing role of user {} to {}", userId, dto.getRole());
+        if (dto.getRole() == Role.REVOKED) {
+            log.error("UserService - changeRole : Attempted to set role REVOKED via changeRole for user {} — use the revoke endpoint instead", userId);
+            throw new ServiceException("Use the revoke endpoint to revoke a user");
+        }
+        try (Transaction tx = database.beginTransaction()) {
+            User user = fetchUserById(userId);
+            user.setRole(dto.getRole());
+            userRepository.update(user, tx);
+            tx.commit();
+        } catch (Exception e) {
+            log.error("UserService - changeRole : Error changing role for user {}", userId, e);
+            throw new ServiceException("Error while changing role. Try again later.");
+        }
+        log.info("UserService - changeRole : Role of user {} changed to {}", userId, dto.getRole());
     }
 
     public Optional<User> findByEmail(String email) {
@@ -86,7 +159,7 @@ public class UserService {
     public void activateUser(UUID userId) {
         log.info("UserService - activateUser : Activating user {}", userId);
         try (Transaction tx = database.beginTransaction()) {
-            User user = getUserById(userId);
+            User user = fetchUserById(userId);
             user.setActive(true);
             userRepository.update(user, tx);
             tx.commit();
@@ -111,7 +184,7 @@ public class UserService {
 
 
     void revokeUser(UUID userId, Transaction tx) {
-        User user = getUserById(userId);
+        User user = fetchUserById(userId);
         user.setActive(false);
         user.setRole(Role.REVOKED);
         userRepository.update(user, tx);
@@ -150,16 +223,8 @@ public class UserService {
         return null;
     }
 
-    private User getUserById(UUID userId) {
-        checkAccessAllowed(userId);
-        return userRepository.getById(userId);
-    }
-
-    private void checkAccessAllowed(UUID userId){
-        if(jwtInspector.hasRole(Role.CUSTOMER) && !jwtInspector.sameSubject(userId)) {
-            log.error("UserService - checkAccessAllowed : JWT subject {} attempted to access user {}, which is not itself",
-                    jwtInspector.getSubject(), userId);
-            throw new ServiceException("Invalid user.");
-        }
+    private User fetchUserById(UUID userId) {
+        jwtInspector.checkAccessAllowed(userId);
+        return userRepository.getUserById(userId);
     }
 }

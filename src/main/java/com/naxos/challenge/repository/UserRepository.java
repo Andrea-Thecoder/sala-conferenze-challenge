@@ -17,7 +17,7 @@ public interface UserRepository extends GenericRepository<User, UUID> {
 
     Optional<User> findByEmail(String email);
 
-    User getById(UUID id);
+    User getUserById(UUID id);
 
     boolean existsByEmail(String email);
 

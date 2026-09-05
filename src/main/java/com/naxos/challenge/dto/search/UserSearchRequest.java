@@ -52,7 +52,7 @@ public class UserSearchRequest extends BaseSearchRequest {
 
     public void applyFilters(ExpressionList<User> exl) {
         if (StringUtils.isNotBlank(name)) {
-            String pattern = "%" + name + "%";
+            String pattern = name + "%";
             exl.or()
                     .ilike("lastName", pattern)
                     .ilike("firstName", pattern)
@@ -60,7 +60,7 @@ public class UserSearchRequest extends BaseSearchRequest {
         }
 
         if (StringUtils.isNotBlank(email)) {
-            exl.ilike("email", "%" + email + "%");
+            exl.ilike("email", email + "%");
         }
 
         if (StringUtils.isNotBlank(phoneNumber)) {

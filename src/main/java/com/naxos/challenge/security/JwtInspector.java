@@ -1,6 +1,7 @@
 package com.naxos.challenge.security;
 
 
+import com.naxos.challenge.exception.ServiceException;
 import com.naxos.challenge.model.enumerator.Role;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -38,5 +39,17 @@ public class JwtInspector {
         Role userRole = getRole();
         if (userRole == null) return false;
         return userRole.equals(role);
+    }
+
+    /**
+     * Regola condivisa da User e Booking: una CUSTOMER può accedere solo alle
+     * proprie risorse, ADMIN/ORGANIZER a quelle di chiunque.
+     */
+    public void checkAccessAllowed(UUID targetUserId) {
+        if (hasRole(Role.CUSTOMER) && !sameSubject(targetUserId)) {
+            log.error("JwtInspector - checkAccessAllowed : JWT subject {} attempted to access a resource belonging to {}",
+                    getSubject(), targetUserId);
+            throw new ServiceException("Invalid user.");
+        }
     }
 }

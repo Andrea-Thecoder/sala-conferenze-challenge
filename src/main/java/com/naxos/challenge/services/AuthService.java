@@ -3,6 +3,7 @@ package com.naxos.challenge.services;
 import com.naxos.challenge.config.AuthConfig;
 import com.naxos.challenge.dto.auth.AuthTokenDTO;
 import com.naxos.challenge.dto.auth.LoginCredentialsDTO;
+import com.naxos.challenge.dto.user.RoleUpdateDTO;
 import com.naxos.challenge.dto.user.UserRegistrationDTO;
 import com.naxos.challenge.exception.ServiceException;
 import com.naxos.challenge.model.AppRefreshToken;
@@ -132,6 +133,9 @@ public class AuthService {
                     try (Transaction tx = database.beginTransaction()) {
                         refreshTokenRepository.revoke(token, tx);
                         tx.commit();
+                    } catch (Exception e) {
+                        log.error("AuthService - logout : Error revoking refresh token", e);
+                        throw new ServiceException("Error while logging out. Try again later.");
                     }
                     log.info("AuthService - logout : Refresh token revoked");
                 }, () -> log.info("AuthService - logout : Refresh token not found, nothing to revoke"));
@@ -144,6 +148,12 @@ public class AuthService {
         log.info("AuthService - activateUser : Activating user {}", userId);
         userService.activateUser(userId);
         log.info("AuthService - activateUser : User {} activated", userId);
+    }
+
+    public void changeRole(UUID userId, RoleUpdateDTO dto) {
+        log.info("AuthService - changeRole : Changing role of user {} to {}", userId, dto.getRole());
+        userService.changeRole(userId, dto);
+        log.info("AuthService - changeRole : Role of user {} changed to {}", userId, dto.getRole());
     }
 
     public void revokeUser(UUID userId) {
@@ -164,6 +174,9 @@ public class AuthService {
         try (Transaction tx = database.beginTransaction()) {
             revokeAllSessions(userId, tx);
             tx.commit();
+        } catch (Exception e) {
+            log.error("AuthService - revokeAllSessions : Error revoking sessions for user {}", userId, e);
+            throw new ServiceException("Error while revoking sessions. Try again later.");
         }
         blacklistAllAccessTokensForUser(userId);
     }

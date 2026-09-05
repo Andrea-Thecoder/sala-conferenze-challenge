@@ -30,7 +30,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User getById(UUID id) {
+    public User getUserById(UUID id) {
         return findById(id).orElseThrow(() -> {
                     log.error("Error finding user by id {}", id);
                     return new ServiceException("User not found");
@@ -60,7 +60,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public void delete(UUID id, Transaction tx) {
         log.info("UserRepository - delete: Delete user with id {}", id);
-        User user = getById(id);
+        User user = getUserById(id);
         user.delete(tx);
     }
 

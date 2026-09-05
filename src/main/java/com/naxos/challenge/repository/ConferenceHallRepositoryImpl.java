@@ -1,47 +1,40 @@
 package com.naxos.challenge.repository;
 
-import com.naxos.challenge.model.ConferenceHall;
-import io.ebean.Database;
-import io.ebean.Transaction;
-import jakarta.inject.Inject;
-
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.naxos.challenge.exception.ServiceException;
+import com.naxos.challenge.model.ConferenceHall;
+import io.ebean.Database;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import lombok.extern.slf4j.Slf4j;
+
+@ApplicationScoped
+@Slf4j
 public class ConferenceHallRepositoryImpl implements ConferenceHallRepository {
 
     @Inject
     Database db;
 
     @Override
-    public Optional<ConferenceHall> findById(UUID uuid) {
-        return Optional.empty();
+    public Optional<ConferenceHall> findById(UUID id) {
+        return Optional.ofNullable(db.find(ConferenceHall.class, id));
     }
 
     @Override
-    public List<ConferenceHall> findAll(int page, int size) {
-        return db.find(ConferenceHall.class).findList();
-
+    public ConferenceHall getConferenceHallById(UUID id) {
+        return findById(id).orElseThrow(() -> {
+            log.error("ConferenceHallRepository - getConferenceHallById: Conference hall {} not found", id);
+            return new ServiceException("Conference hall not found");
+        });
     }
-
+    
     @Override
-    public void save(ConferenceHall entity, Transaction tx) {
-        entity.save(tx);
-    }
-
-    @Override
-    public void update(ConferenceHall entity, Transaction tx) {
-        entity.update(tx);
-    }
-
-    @Override
-    public void delete(UUID uuid, Transaction tx) {
-
-    }
-
-    @Override
-    public long count() {
-        return db.find(ConferenceHall.class).findCount();
+    public boolean conferenceHallAvailable(UUID conferenceHallId) {
+        return db.find(ConferenceHall.class).where()
+                .idEq(conferenceHallId)
+                .eq("enabled", true)
+                .exists();
     }
 }
