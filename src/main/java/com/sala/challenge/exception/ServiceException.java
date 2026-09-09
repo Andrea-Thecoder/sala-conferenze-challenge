@@ -10,6 +10,16 @@ import jakarta.persistence.PersistenceException;
 public class ServiceException extends RuntimeException {
 
     private static final String EXCLUSION_VIOLATION_SQLSTATE = "23P01";
+    /**
+     * Sotto inserimenti concorrenti reali, Postgres può risolvere il controllo
+     * del vincolo EXCLUDE (GiST) con un deadlock invece che con una pulita
+     * exclusion_violation: entrambe le transazioni finiscono per attendersi a
+     * vicenda mentre verificano il vincolo sulla tupla dell'altra. È un
+     * comportamento documentato di GiST sotto concorrenza, non un bug
+     * applicativo — qui è trattato come lo stesso segnale "slot in conflitto",
+     * senza introdurre un lock pessimistico (scelta di design confermata).
+     */
+    private static final String DEADLOCK_DETECTED_SQLSTATE = "40P01";
 
     public ServiceException() {
         super();
@@ -47,7 +57,10 @@ public class ServiceException extends RuntimeException {
 
     public static boolean isOverlapViolation(Throwable ex) {
         Throwable cause = ExceptionUtils.getRootCause(ex);
-        return cause instanceof PSQLException pex
-                && EXCLUSION_VIOLATION_SQLSTATE.equals(pex.getSQLState());
+        if (!(cause instanceof PSQLException pex)) {
+            return false;
+        }
+        String sqlState = pex.getSQLState();
+        return EXCLUSION_VIOLATION_SQLSTATE.equals(sqlState) || DEADLOCK_DETECTED_SQLSTATE.equals(sqlState);
     }
 }

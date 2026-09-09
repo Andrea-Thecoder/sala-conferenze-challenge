@@ -38,12 +38,18 @@ public class AppRefreshTokenRepositoryImpl implements AppRefreshTokenRepository 
                 .findOneOrEmpty();
     }
 
+    /**
+     * Niente fetch("replacedByToken") qui: quella relazione è nullable (LEFT JOIN
+     * lato Postgres) e "FOR UPDATE cannot be applied to the nullable side of an
+     * outer join" — errore SQL reale, non ipotetico, se combinati. AuthService.refresh
+     * scrive replacedByToken su questa entity ma non lo legge mai, quindi il fetch
+     * non serve comunque in questa query.
+     */
     @Override
     public Optional<AppRefreshToken> findByTokenHashForUpdate(String tokenHash, Transaction tx) {
         return db.find(AppRefreshToken.class)
                 .forUpdate()
                 .fetch("user")
-                .fetch("replacedByToken")
                 .where().eq("tokenHash", tokenHash)
                 .usingTransaction(tx)
                 .findOneOrEmpty();

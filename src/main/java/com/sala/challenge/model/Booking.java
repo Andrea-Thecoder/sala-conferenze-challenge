@@ -15,7 +15,16 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Index(name = "idx_booking_hall_time_range", columnNames = {"conference_hall_id, start_date_time, end_date_time"},unique = true)
+/**
+ * Non unique: quel ruolo lo copre già il vincolo EXCLUDE su Postgres
+ * (excl_a_booking_hall_time_overlap, V1.2 migration) — che copre anche il
+ * range identico a se stesso, non solo le sovrapposizioni parziali. Un indice
+ * UNIQUE qui in aggiunta produrrebbe uno SQLSTATE diverso (23505 invece di
+ * 23P01) per lo stesso identico caso "slot già prenotato", che
+ * ServiceException.isOverlapViolation non riconosce — restando solo l'indice
+ * (non univoco) serve solo a velocizzare le query di overlap.
+ */
+@Index(name = "idx_booking_hall_time_range", columnNames = {"conference_hall_id, start_date_time, end_date_time"})
 public class Booking extends AbstractAudit {
 
     @Id

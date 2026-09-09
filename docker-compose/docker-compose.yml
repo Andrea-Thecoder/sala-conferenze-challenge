@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - sala-backend-challenge-data:/var/lib/postgresql/data
+      - sala-backend-challenge-data:/var/lib/postgresql
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sala-backend-challenge"]

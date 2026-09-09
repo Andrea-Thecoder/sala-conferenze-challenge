@@ -1,4 +1,4 @@
-Naxos Backend Challenge 
+Sala Backend Challenge 
 
 Valutazioni iniziali:
 

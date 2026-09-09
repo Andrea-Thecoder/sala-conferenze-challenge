@@ -25,7 +25,6 @@ create table a_booking (
   updated_at                    timestamp not null,
   created_by                    varchar(255) not null,
   updated_by                    varchar(255) not null,
-  constraint idx_booking_hall_time_range unique (conference_hall_id,start_date_time,end_date_time),
   constraint pk_a_booking primary key (id)
 );
 
@@ -97,6 +96,7 @@ create index ix_conference_hall_building_id on conference_hall (building_id);
 alter table conference_hall add constraint fk_conference_hall_building_id foreign key (building_id) references building (id) on delete restrict on update restrict;
 
 create index if not exists ix_app_refresh_token_family_id on app_refresh_token (family_id);
+create index if not exists idx_booking_hall_time_range on a_booking (conference_hall_id,start_date_time,end_date_time);
 create index if not exists ix_a_booking_start_date_time on a_booking (start_date_time);
 create index if not exists ix_a_booking_end_date_time on a_booking (end_date_time);
 create index if not exists ix_building_street on building (street);

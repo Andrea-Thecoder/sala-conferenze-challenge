@@ -74,6 +74,15 @@ class ServiceExceptionTest {
     }
 
     @Test
+    void isOverlapViolation_causeIsDeadlockDetected_returnsTrue() {
+        PSQLException deadlock = new PSQLException("deadlock detected", PSQLState.DEADLOCK_DETECTED);
+
+        boolean result = ServiceException.isOverlapViolation(deadlock);
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
     void isOverlapViolation_causeIsDifferentSqlState_returnsFalse() {
         PSQLException uniqueViolation = new PSQLException("duplicate key", PSQLState.UNIQUE_VIOLATION);
 
