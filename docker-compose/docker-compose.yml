@@ -3,42 +3,42 @@ version: "3.8"
 services:
   postgres:
     image: postgres:18
-    container_name: naxos-backend-challenge-postgres
+    container_name: sala-backend-challenge-postgres
     environment:
-      POSTGRES_DB: naxos-backend-challenge
-      POSTGRES_USER: naxos-backend-challenge
+      POSTGRES_DB: sala-backend-challenge
+      POSTGRES_USER: sala-backend-challenge
       POSTGRES_PASSWORD: secret
     ports:
       - "5432:5432"
     volumes:
-      - naxos-backend-challenge-data:/var/lib/postgresql/data
+      - sala-backend-challenge-data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U naxos-backend-challenge"]
+      test: ["CMD-SHELL", "pg_isready -U sala-backend-challenge"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - naxos-backend-challenge-net
+      - sala-backend-challenge-net
 
   redis:
     image: redis:7-alpine
-    container_name: naxos-backend-challenge-redis
+    container_name: sala-backend-challenge-redis
     ports:
       - "6379:6379"
     volumes:
-      - naxos-backend-challenge-redis-data:/data
+      - sala-backend-challenge-redis-data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - naxos-backend-challenge-net
+      - sala-backend-challenge-net
 
 volumes:
-  naxos-backend-challenge-data:
-  naxos-backend-challenge-redis-data:
+  sala-backend-challenge-data:
+  sala-backend-challenge-redis-data:
 
 networks:
-  naxos-backend-challenge-net:
+  sala-backend-challenge-net:

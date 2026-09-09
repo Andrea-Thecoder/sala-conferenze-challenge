@@ -2,8 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.naxos.challenge</groupId>
-    <artifactId>naxos-backend-challenge</artifactId>
+    <groupId>com.sala.challenge</groupId>
+    <artifactId>sala-backend-challenge</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>quarkus</packaging>
 
@@ -109,6 +109,10 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-fault-tolerance</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-cache</artifactId>
         </dependency>
         <dependency>
@@ -204,7 +208,7 @@
                         </goals>
                         <phase>process-classes</phase>
                         <configuration>
-                            <packages>com.naxos.challenge.model</packages>
+                            <packages>com.sala.challenge.model</packages>
                         </configuration>
                     </execution>
                 </executions>

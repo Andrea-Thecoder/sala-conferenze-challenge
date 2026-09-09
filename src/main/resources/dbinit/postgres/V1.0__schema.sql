@@ -25,6 +25,7 @@ create table a_booking (
   updated_at                    timestamp not null,
   created_by                    varchar(255) not null,
   updated_by                    varchar(255) not null,
+  constraint idx_booking_hall_time_range unique (conference_hall_id,start_date_time,end_date_time),
   constraint pk_a_booking primary key (id)
 );
 
@@ -80,6 +81,7 @@ create table app_user (
 );
 
 -- foreign keys and indices
+create index ix_app_refresh_token_user_app_id on app_refresh_token (user_app_id);
 alter table app_refresh_token add constraint fk_app_refresh_token_user_app_id foreign key (user_app_id) references app_user (id) on delete restrict on update restrict;
 
 create index ix_app_refresh_token_replaced_by_id on app_refresh_token (replaced_by_id);
@@ -94,10 +96,20 @@ alter table a_booking add constraint fk_a_booking_user_app_id foreign key (user_
 create index ix_conference_hall_building_id on conference_hall (building_id);
 alter table conference_hall add constraint fk_conference_hall_building_id foreign key (building_id) references building (id) on delete restrict on update restrict;
 
-create index if not exists idx_refresh_token_family on app_refresh_token (family_id);
-create index if not exists idx_refresh_token_user on app_refresh_token (user_app_id);
-create index if not exists idx_booking_hall_time_range on a_booking (conference_hall_id,start_date_time,end_date_time);
-create index if not exists idx_app_user_phone_number on app_user (phone_number);
-create index if not exists idx_app_user_email on app_user (email);
-create index if not exists idx_app_user_lastname on app_user (last_name);
+create index if not exists ix_app_refresh_token_family_id on app_refresh_token (family_id);
+create index if not exists ix_a_booking_start_date_time on a_booking (start_date_time);
+create index if not exists ix_a_booking_end_date_time on a_booking (end_date_time);
+create index if not exists ix_building_street on building (street);
+create index if not exists ix_building_city on building (city);
+create index if not exists ix_building_postal_code on building (postal_code);
+create index if not exists ix_building_country on building (country);
+create index if not exists ix_conference_hall_name on conference_hall (name);
+create index if not exists ix_conference_hall_size on conference_hall (size);
+create index if not exists ix_conference_hall_price_per_hour on conference_hall (price_per_hour);
+create index if not exists ix_conference_hall_enabled on conference_hall (enabled);
 create index if not exists idx_app_user_firstname_lastname on app_user (first_name,last_name);
+create index if not exists ix_app_user_last_name on app_user (last_name);
+create index if not exists ix_app_user_password on app_user (password);
+create index if not exists ix_app_user_phone_number on app_user (phone_number);
+create index if not exists ix_app_user_role on app_user (role);
+create index if not exists ix_app_user_active on app_user (active);

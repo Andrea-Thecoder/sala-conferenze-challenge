@@ -1,0 +1,27 @@
+package com.sala.challenge.repository;
+
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+import com.sala.challenge.dto.search.UserSearchRequest;
+import com.sala.challenge.model.User;
+import com.sala.challenge.model.enumerator.Role;
+import io.ebean.PagedList;
+
+/**
+ * Estende il contratto generico aggiungendo le query specifiche del dominio "User",
+ * come la ricerca per email necessaria a login/registrazione.
+ */
+public interface UserRepository extends GenericRepository<User, UUID> {
+
+    Optional<User> findByEmail(String email);
+
+    User getUserById(UUID id);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    PagedList<User> search(UserSearchRequest request, Set<Role> roleConstraint);
+}
