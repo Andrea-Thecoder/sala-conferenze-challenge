@@ -1,4 +1,4 @@
-package com.sala.challenge.exception;
+package com.sala.challenge.unit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.postgresql.util.ServerErrorMessage;
+
+import com.sala.challenge.exception.ServiceException;
 
 import jakarta.persistence.PersistenceException;
 

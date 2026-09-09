@@ -1,10 +1,12 @@
-package com.sala.challenge.util;
+package com.sala.challenge.unit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
+
+import com.sala.challenge.util.DateTimeUtils;
 
 class DateTimeUtilsTest {
 
