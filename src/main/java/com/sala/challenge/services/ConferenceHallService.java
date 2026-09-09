@@ -61,8 +61,20 @@ public class ConferenceHallService {
         }
     }
 
+    /**
+     * Stesso comportamento di "non trovato" del repository (ServiceException, non
+     * NotFoundException) per una sala disabilitata vista da un CUSTOMER: se un caso
+     * restituisse 404 e l'altro 400, lo status code diverso diventerebbe di per sé
+     * un modo per distinguere "non esiste" da "esiste ma è disabilitata" — esattamente
+     * l'enumerazione che questo controllo deve evitare (CODE_REVIEW.md finding #2).
+     */
     public DetailConferenceHallDTO getConferenceHallDetailById(UUID id) {
-        return DetailConferenceHallDTO.of(conferenceHallRepository.getConferenceHallById(id));
+        ConferenceHall conferenceHall = conferenceHallRepository.getConferenceHallById(id);
+        if (!conferenceHall.isEnabled() && !jwtInspector.hasRole(Role.ADMIN) && !jwtInspector.hasRole(Role.ORGANIZER)) {
+            log.error("ConferenceHallService - getConferenceHallDetailById : Conference hall {} is disabled, hidden from non-admin/organizer caller", id);
+            throw new ServiceException("Conference hall not found");
+        }
+        return DetailConferenceHallDTO.of(conferenceHall);
     }
 
     public PagedResultDTO<BaseDetailConferenceHallDTO> findAllConferenceHalls(ConferenceHallSearchRequest request) {

@@ -43,6 +43,17 @@ public class AccessTokenBlacklist {
         return redis.key().exists(TOKEN_KEY_PREFIX + jti);
     }
 
+    /**
+     * Se anche i retry falliscono (Redis giù più a lungo di un blip transitorio), la
+     * scrittura resta persa: nessuna coda di recovery. Rischio accettato consapevolmente,
+     * non un'omissione — vedi SESSION_STATUS.md per i dettagli della valutazione: la rete
+     * di sicurezza enterprise-standard per questo caso (dual-write DB→Redis) sarebbe un
+     * transactional outbox su Postgres, non una coda in-memory (che comunque non
+     * reggerebbe con più di un'istanza dell'app). Costruirlo non è proporzionato
+     * all'impatto reale: un utente revocato proprio nell'istante di un'interruzione Redis
+     * resta autenticabile con un token già emesso per al massimo jwtExpirationMinutes
+     * (5-15 min di default), non oltre — mai un accesso indefinito.
+     */
     @Retry(maxRetries = 2, delay = 100, delayUnit = ChronoUnit.MILLIS)
     @ExponentialBackoff
     public void revokeAllTokensForUser(String subject, long ttlSeconds) {
