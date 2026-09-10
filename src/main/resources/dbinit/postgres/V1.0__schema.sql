@@ -80,6 +80,115 @@ create table app_user (
   constraint pk_app_user primary key (id)
 );
 
+-- apply alter tables
+alter table a_booking add column if not exists sys_period tstzrange not null default tstzrange(current_timestamp, null);
+alter table app_refresh_token add column if not exists sys_period tstzrange not null default tstzrange(current_timestamp, null);
+alter table building add column if not exists sys_period tstzrange not null default tstzrange(current_timestamp, null);
+alter table conference_hall add column if not exists sys_period tstzrange not null default tstzrange(current_timestamp, null);
+-- apply post alter
+create table app_refresh_token_history(like app_refresh_token);
+create view app_refresh_token_with_history as select * from app_refresh_token union all select * from app_refresh_token_history;
+create or replace function app_refresh_token_history_version() returns trigger as $$
+declare
+  lowerTs timestamptz;
+  upperTs timestamptz;
+begin
+  lowerTs = lower(OLD.sys_period);
+  upperTs = greatest(lowerTs + '1 microsecond',current_timestamp);
+  if (TG_OP = 'UPDATE') then
+    insert into app_refresh_token_history (sys_period,id, user_app_id, token_hash, family_id, expires_at, revoked_at, replaced_by_id, version) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.user_app_id, OLD.token_hash, OLD.family_id, OLD.expires_at, OLD.revoked_at, OLD.replaced_by_id, OLD.version);
+    NEW.sys_period = tstzrange(upperTs,null);
+    return new;
+  elsif (TG_OP = 'DELETE') then
+    insert into app_refresh_token_history (sys_period,id, user_app_id, token_hash, family_id, expires_at, revoked_at, replaced_by_id, version) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.user_app_id, OLD.token_hash, OLD.family_id, OLD.expires_at, OLD.revoked_at, OLD.replaced_by_id, OLD.version);
+    return old;
+  end if;
+end;
+$$ LANGUAGE plpgsql;
+
+create trigger app_refresh_token_history_upd
+  before update or delete on app_refresh_token
+  for each row execute procedure app_refresh_token_history_version();
+
+
+update a_booking set sys_period = tstzrange(created_at, null);
+create table a_booking_history(like a_booking);
+create view a_booking_with_history as select * from a_booking union all select * from a_booking_history;
+create or replace function a_booking_history_version() returns trigger as $$
+declare
+  lowerTs timestamptz;
+  upperTs timestamptz;
+begin
+  lowerTs = lower(OLD.sys_period);
+  upperTs = greatest(lowerTs + '1 microsecond',current_timestamp);
+  if (TG_OP = 'UPDATE') then
+    insert into a_booking_history (sys_period,id, conference_hall_id, user_app_id, start_date_time, end_date_time, total_cost, paid, version, created_at, updated_at, created_by, updated_by) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.conference_hall_id, OLD.user_app_id, OLD.start_date_time, OLD.end_date_time, OLD.total_cost, OLD.paid, OLD.version, OLD.created_at, OLD.updated_at, OLD.created_by, OLD.updated_by);
+    NEW.sys_period = tstzrange(upperTs,null);
+    return new;
+  elsif (TG_OP = 'DELETE') then
+    insert into a_booking_history (sys_period,id, conference_hall_id, user_app_id, start_date_time, end_date_time, total_cost, paid, version, created_at, updated_at, created_by, updated_by) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.conference_hall_id, OLD.user_app_id, OLD.start_date_time, OLD.end_date_time, OLD.total_cost, OLD.paid, OLD.version, OLD.created_at, OLD.updated_at, OLD.created_by, OLD.updated_by);
+    return old;
+  end if;
+end;
+$$ LANGUAGE plpgsql;
+
+create trigger a_booking_history_upd
+  before update or delete on a_booking
+  for each row execute procedure a_booking_history_version();
+
+
+update building set sys_period = tstzrange(created_at, null);
+create table building_history(like building);
+create view building_with_history as select * from building union all select * from building_history;
+create or replace function building_history_version() returns trigger as $$
+declare
+  lowerTs timestamptz;
+  upperTs timestamptz;
+begin
+  lowerTs = lower(OLD.sys_period);
+  upperTs = greatest(lowerTs + '1 microsecond',current_timestamp);
+  if (TG_OP = 'UPDATE') then
+    insert into building_history (sys_period,id, street, city, postal_code, country, version, created_at, updated_at, created_by, updated_by) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.street, OLD.city, OLD.postal_code, OLD.country, OLD.version, OLD.created_at, OLD.updated_at, OLD.created_by, OLD.updated_by);
+    NEW.sys_period = tstzrange(upperTs,null);
+    return new;
+  elsif (TG_OP = 'DELETE') then
+    insert into building_history (sys_period,id, street, city, postal_code, country, version, created_at, updated_at, created_by, updated_by) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.street, OLD.city, OLD.postal_code, OLD.country, OLD.version, OLD.created_at, OLD.updated_at, OLD.created_by, OLD.updated_by);
+    return old;
+  end if;
+end;
+$$ LANGUAGE plpgsql;
+
+create trigger building_history_upd
+  before update or delete on building
+  for each row execute procedure building_history_version();
+
+
+update conference_hall set sys_period = tstzrange(created_at, null);
+create table conference_hall_history(like conference_hall);
+create view conference_hall_with_history as select * from conference_hall union all select * from conference_hall_history;
+create or replace function conference_hall_history_version() returns trigger as $$
+declare
+  lowerTs timestamptz;
+  upperTs timestamptz;
+begin
+  lowerTs = lower(OLD.sys_period);
+  upperTs = greatest(lowerTs + '1 microsecond',current_timestamp);
+  if (TG_OP = 'UPDATE') then
+    insert into conference_hall_history (sys_period,id, name, note, size, price_per_hour, building_id, floor, room_number, enabled, version, created_at, updated_at, created_by, updated_by) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.name, OLD.note, OLD.size, OLD.price_per_hour, OLD.building_id, OLD.floor, OLD.room_number, OLD.enabled, OLD.version, OLD.created_at, OLD.updated_at, OLD.created_by, OLD.updated_by);
+    NEW.sys_period = tstzrange(upperTs,null);
+    return new;
+  elsif (TG_OP = 'DELETE') then
+    insert into conference_hall_history (sys_period,id, name, note, size, price_per_hour, building_id, floor, room_number, enabled, version, created_at, updated_at, created_by, updated_by) values (tstzrange(lowerTs,upperTs), OLD.id, OLD.name, OLD.note, OLD.size, OLD.price_per_hour, OLD.building_id, OLD.floor, OLD.room_number, OLD.enabled, OLD.version, OLD.created_at, OLD.updated_at, OLD.created_by, OLD.updated_by);
+    return old;
+  end if;
+end;
+$$ LANGUAGE plpgsql;
+
+create trigger conference_hall_history_upd
+  before update or delete on conference_hall
+  for each row execute procedure conference_hall_history_version();
+
+
 -- foreign keys and indices
 create index ix_app_refresh_token_user_app_id on app_refresh_token (user_app_id);
 alter table app_refresh_token add constraint fk_app_refresh_token_user_app_id foreign key (user_app_id) references app_user (id) on delete restrict on update restrict;
