@@ -78,7 +78,8 @@ class RegistrationFlowIT extends AbstractIntegrationTest {
                 .body(body)
                 .when().post("/auth/register")
                 .then()
-                .statusCode(400);
+                .statusCode(400)
+                .body("violations[0].message", org.hamcrest.Matchers.containsString("REVOKED is not a role that can be requested at registration"));
     }
 
     @Test

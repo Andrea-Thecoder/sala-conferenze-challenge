@@ -73,5 +73,6 @@ class BookingHistoryIT extends AbstractIntegrationTest {
         assertThat(historyRow).isNotNull();
         assertThat(historyRow.getBoolean("paid")).isTrue();
         assertThat(historyRow.getBigDecimal("total_cost")).isEqualByComparingTo("100.00");
+        assertThat(historyRow.getBoolean("closed")).isTrue();
     }
 }
