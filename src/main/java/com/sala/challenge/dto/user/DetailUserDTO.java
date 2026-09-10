@@ -1,7 +1,6 @@
 package com.sala.challenge.dto.user;
 
 import com.sala.challenge.dto.booking.BaseDetailBookingDTO;
-import com.sala.challenge.model.Booking;
 import com.sala.challenge.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -14,24 +13,14 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+public class DetailUserDTO extends BaseDetailUserDTO {
 
-public class DetailUserDTO extends  BaseDetailUserDTO{
+    private List<BaseDetailBookingDTO> bookings;
 
-    private List<BaseDetailBookingDTO>  bookings;
-
-    public static DetailUserDTO of (User user, List<BaseDetailBookingDTO> bookings) {
+    public static DetailUserDTO of(User user, List<BaseDetailBookingDTO> bookings) {
         DetailUserDTO dto = new DetailUserDTO();
-        dto.setId(user.getId());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setEmail(user.getEmail());
-        dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setRole(user.getRole());
-        dto.setActive(user.isActive());
+        dto.populate(user);
         dto.setBookings(bookings);
         return dto;
     }
-
-
-
 }

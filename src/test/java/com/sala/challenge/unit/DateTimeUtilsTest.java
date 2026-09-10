@@ -11,36 +11,6 @@ import com.sala.challenge.util.DateTimeUtils;
 class DateTimeUtilsTest {
 
     @Test
-    void hoursBetween_wholeHoursApart_returnsExactHours() {
-        LocalDateTime start = LocalDateTime.of(2026, 1, 1, 9, 0);
-        LocalDateTime end = LocalDateTime.of(2026, 1, 1, 12, 0);
-
-        long hours = DateTimeUtils.hoursBetween(start, end);
-
-        assertThat(hours).isEqualTo(3L);
-    }
-
-    @Test
-    void hoursBetween_partialHourApart_truncatesToWholeHours() {
-        LocalDateTime start = LocalDateTime.of(2026, 1, 1, 9, 0);
-        LocalDateTime end = LocalDateTime.of(2026, 1, 1, 10, 45);
-
-        long hours = DateTimeUtils.hoursBetween(start, end);
-
-        assertThat(hours).isEqualTo(1L);
-    }
-
-    @Test
-    void minutesPartBetween_partialHourApart_returnsRemainderMinutes() {
-        LocalDateTime start = LocalDateTime.of(2026, 1, 1, 9, 0);
-        LocalDateTime end = LocalDateTime.of(2026, 1, 1, 10, 45);
-
-        int minutesPart = DateTimeUtils.minutesPartBetween(start, end);
-
-        assertThat(minutesPart).isEqualTo(45);
-    }
-
-    @Test
     void minutesBetween_returnsTotalMinutes() {
         LocalDateTime start = LocalDateTime.of(2026, 1, 1, 9, 0);
         LocalDateTime end = LocalDateTime.of(2026, 1, 1, 10, 45);

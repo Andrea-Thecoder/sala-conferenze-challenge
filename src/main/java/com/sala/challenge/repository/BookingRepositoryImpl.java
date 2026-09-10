@@ -37,14 +37,6 @@ public class BookingRepositoryImpl implements BookingRepository {
     }
 
     @Override
-    public List<Booking> findAll(int page, int size) {
-        return database.find(Booking.class)
-                .setFirstRow(page * size)
-                .setMaxRows(size)
-                .findList();
-    }
-
-    @Override
     public void save(Booking entity, Transaction tx) {
         entity.save(tx);
     }
@@ -63,21 +55,11 @@ public class BookingRepositoryImpl implements BookingRepository {
     }
 
     @Override
-    public long count() {
-        return database.find(Booking.class).findCount();
-    }
-
-    @Override
     public List<Booking> findByUserId(UUID userId) {
         return database.find(Booking.class)
                 .where().eq("user.id", userId)
                 .orderBy("startDateTime desc")
                 .findList();
-    }
-
-    @Override
-    public boolean existsOverlapping(UUID conferenceHallId, LocalDateTime start, LocalDateTime end){
-        return existsOverlapping(conferenceHallId, start, end, null);
     }
 
     @Override
@@ -97,7 +79,7 @@ public class BookingRepositoryImpl implements BookingRepository {
     public PagedList<Booking> search(BookingSearchRequest request, UUID userConstraint) {
         ExpressionList<Booking> exl = database.find(Booking.class).where();
         request.applyFilters(exl, userConstraint);
-        request.applySortAndPagination(exl, "startDateTime desc");
+        request.applySortAndPagination(exl, "startDateTime");
         return exl.findPagedList();
     }
 }

@@ -23,13 +23,17 @@ public class BaseDetailUserDTO {
 
     public static BaseDetailUserDTO of(User user) {
         BaseDetailUserDTO dto = new BaseDetailUserDTO();
-        dto.setId(user.getId());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setEmail(user.getEmail());
-        dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setRole(user.getRole());
-        dto.setActive(user.isActive());
+        dto.populate(user);
         return dto;
+    }
+
+    protected void populate(User user) {
+        this.id = user.getId();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.email = user.getEmail();
+        this.phoneNumber = user.getPhoneNumber();
+        this.role = user.getRole();
+        this.active = user.isActive();
     }
 }

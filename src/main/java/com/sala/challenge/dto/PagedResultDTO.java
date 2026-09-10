@@ -29,15 +29,6 @@ public class PagedResultDTO<T> {
     @Schema(description = "Current page number (1-based)", example = "1")
     private int page = 1;
 
-    public static <T> PagedResultDTO<T> of(List<T> list, int totalRows, int page, int size) {
-        PagedResultDTO<T> pr = new PagedResultDTO<>();
-        pr.setList(list);
-        pr.setTotalRows(totalRows);
-        pr.setTotalPages((int) Math.ceil((double) totalRows / size));
-        pr.setPageSize(size);
-        pr.setPage(page);
-        return pr;
-    }
     public static <T, R> PagedResultDTO<R> of(PagedList<T> list, Function<? super T, ? extends R> mapper) {
         PagedResultDTO<R> pr = new PagedResultDTO<>();
         pr.setList(list.getList().stream().map(mapper).collect(Collectors.toList()));

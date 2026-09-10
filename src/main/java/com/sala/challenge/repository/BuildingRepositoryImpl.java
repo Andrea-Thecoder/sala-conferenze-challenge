@@ -1,6 +1,5 @@
 package com.sala.challenge.repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,14 +35,6 @@ public class BuildingRepositoryImpl implements BuildingRepository {
     }
 
     @Override
-    public List<Building> findAll(int page, int size) {
-        return database.find(Building.class)
-                .setFirstRow(page * size)
-                .setMaxRows(size)
-                .findList();
-    }
-
-    @Override
     public void save(Building entity, Transaction tx) {
         entity.save(tx);
     }
@@ -59,11 +50,6 @@ public class BuildingRepositoryImpl implements BuildingRepository {
         log.info("BuildingRepository - delete: Delete building with id {}", id);
         Building building = getBuildingById(id);
         building.delete(tx);
-    }
-
-    @Override
-    public long count() {
-        return database.find(Building.class).findCount();
     }
 
     @Override

@@ -2,7 +2,7 @@ package com.sala.challenge.dto.user;
 
 import com.sala.challenge.model.User;
 import com.sala.challenge.model.enumerator.Role;
-import com.sala.challenge.security.PasswordEncoder;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -43,9 +43,6 @@ public class UserRegistrationDTO {
     @Schema(description = "Password: 8-32 characters, at least one uppercase letter, one digit and one special character")
     private String password;
 
-    // 16 = 1 (il '+' opzionale) + 15 cifre max: stesso limite espresso in due punti
-    // diversi (Size legge la lunghezza della stringa già scritta, Pattern ne vincola
-    // la forma) — devono restare coerenti tra loro se uno dei due cambia.
     @NotBlank(message = "Phone number is required")
     @Size(max = 16, message = "Phone number must be at most 16 characters, including the optional leading '+'")
     @Pattern(
@@ -58,6 +55,16 @@ public class UserRegistrationDTO {
     @NotNull(message = "Role is required")
     @Schema(description = "Role requested at registration", example = "CUSTOMER")
     private Role role;
+
+    /**
+     * REVOKED è uno stato applicativo (assegnato solo da /auth/users/{id}/revoke o
+     * dall'anonimizzazione GDPR), non un ruolo richiedibile in self-registrazione —
+     * stessa regola già applicata in RoleUpdateDTO/UserService.changeRole.
+     */
+    @AssertTrue(message = "REVOKED is not a role that can be requested at registration")
+    private boolean isRoleRegistrable() {
+        return role != Role.REVOKED;
+    }
 
     public User toEntity() {
         User user = new User();

@@ -99,4 +99,20 @@ public class AppRefreshTokenRepositoryImpl implements AppRefreshTokenRepository 
                 .isNull("revokedAt")
                 .findList();
     }
+
+    @Override
+    public int deleteExpiredOrphaned(LocalDateTime threshold) {
+        int totalDeleted = 0;
+        int deletedThisRound;
+        do {
+            deletedThisRound = db.sqlUpdate(
+                            "delete from app_refresh_token " +
+                                    "where expires_at < :threshold " +
+                                    "and id not in (select replaced_by_id from app_refresh_token where replaced_by_id is not null)")
+                    .setParameter("threshold", threshold)
+                    .execute();
+            totalDeleted += deletedThisRound;
+        } while (deletedThisRound > 0);
+        return totalDeleted;
+    }
 }

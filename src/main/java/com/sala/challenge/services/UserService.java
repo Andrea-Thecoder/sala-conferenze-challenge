@@ -50,9 +50,6 @@ public class UserService {
     @Inject
     BookingService bookingService;
 
-    @Inject
-    AuthService authService;
-
     public UUID createUser(UserRegistrationDTO dto) {
         log.info("UserService - save : Creating new user");
         if (userRepository.existsByEmail(dto.getEmail())) {
@@ -82,8 +79,8 @@ public class UserService {
             log.error("UserService - updatePhoneNumber : Phone number already in use for user {}", userId);
             throw new ServiceException("Phone number already in use");
         }
+        User user = fetchUserById(userId);
         try (Transaction tx = database.beginTransaction()) {
-            User user = fetchUserById(userId);
             dto.toUpdate(user);
             userRepository.update(user, tx);
             tx.commit();
@@ -143,8 +140,8 @@ public class UserService {
             log.error("UserService - changeRole : Attempted to set role REVOKED via changeRole for user {} — use the revoke endpoint instead", userId);
             throw new ServiceException("Use the revoke endpoint to revoke a user");
         }
+        User user = fetchUserById(userId);
         try (Transaction tx = database.beginTransaction()) {
-            User user = fetchUserById(userId);
             user.setRole(dto.getRole());
             userRepository.update(user, tx);
             tx.commit();
@@ -162,8 +159,8 @@ public class UserService {
 
     public void activateUser(UUID userId) {
         log.info("UserService - activateUser : Activating user {}", userId);
+        User user = fetchUserById(userId);
         try (Transaction tx = database.beginTransaction()) {
-            User user = fetchUserById(userId);
             user.setActive(true);
             userRepository.update(user, tx);
             tx.commit();
@@ -173,24 +170,6 @@ public class UserService {
         }
         log.info("UserService - activateUser : User {} activated", userId);
     }
-
-    public void revokeUser(UUID userId) {
-        log.info("UserService - revokeUser : Revoking user {}", userId);
-        try (Transaction tx = database.beginTransaction()) {
-            revokeUser(userId, tx);
-            tx.commit();
-        } catch (Exception e) {
-            log.error("UserService - revokeUser : Error revoking user {}", userId, e);
-            throw new ServiceException("Error while revoking user. Try again later.");
-        }
-        log.info("UserService - revokeUser : User {} revoked", userId);
-    }
-
-    public void deleteUser(UUID userId) {
-        log.info("UserService - deleteUser : Deleting user {}", userId);
-        authService.deleteUser(userId);
-    }
-
 
     public void revokeUser(UUID userId, Transaction tx) {
         User user = fetchUserById(userId);

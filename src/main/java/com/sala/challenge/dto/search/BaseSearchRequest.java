@@ -52,12 +52,11 @@ public class BaseSearchRequest {
     private void applySort(ExpressionList<?> exl, String defaultSort) {
         String direction = descending ? " desc" : " asc";
         String resolved = resolveSortField(this.getSort());
-        if (StringUtils.isNotBlank(resolved)) {
-            exl.orderBy(resolved + direction);
-        } else if (StringUtils.isNotBlank(defaultSort)) {
-            exl.orderBy(defaultSort);
+        String field = StringUtils.isNotBlank(resolved) ? resolved : defaultSort;
+        if (StringUtils.isNotBlank(field)) {
+            exl.orderBy(field + direction);
         } else {
-            exl.orderById(true);
+            exl.orderById(!descending);
         }
     }
 

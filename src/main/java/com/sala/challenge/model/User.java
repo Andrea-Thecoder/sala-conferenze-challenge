@@ -29,18 +29,16 @@ public class User extends AbstractAudit {
     private String lastName;
 
     @Column(nullable = false)
-    @Index
     private String password;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, length = 20)
-    @Index
+    @Column(nullable = false, length = 16, unique = true)
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 9)
+    @Column(nullable = false)
     @Index
     private Role role;
 

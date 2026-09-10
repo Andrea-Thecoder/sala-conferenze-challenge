@@ -30,6 +30,7 @@ import com.sala.challenge.dto.booking.BaseDetailBookingDTO;
 import com.sala.challenge.dto.booking.ConferenceHallReservationDTO;
 import com.sala.challenge.dto.booking.CreateBookingDTO;
 import com.sala.challenge.dto.booking.DetailBookingDTO;
+import com.sala.challenge.dto.booking.InsertStatusDTO;
 import com.sala.challenge.dto.booking.UpdateBookingDTO;
 import com.sala.challenge.dto.search.BookingSearchRequest;
 import com.sala.challenge.exception.ServiceException;
@@ -223,7 +224,7 @@ class BookingServiceTest {
     }
 
     @Test
-    void createBookings_unexpectedDbError_throwsServiceException() {
+    void createBookings_unexpectedDbError_reportsFailureInsteadOfThrowing() {
         when(userService.getUserBySubject()).thenReturn(user());
         ConferenceHall hall = conferenceHall(BigDecimal.TEN, true);
         LocalDateTime start = LocalDateTime.now().plusDays(1);
@@ -237,9 +238,9 @@ class BookingServiceTest {
         serviceExceptionMock.when(() -> ServiceException.isOverlapViolation(any())).thenReturn(false);
         CreateBookingDTO dto = createBookingDto(reservation(hall.getId(), start, end));
 
-        Throwable thrown = catchThrowable(() -> bookingService.createBookings(dto));
+        InsertStatusDTO result = bookingService.createBookings(dto);
 
-        assertThat(thrown).isInstanceOf(ServiceException.class);
+        assertThat(result.getInsertFailureCount()).isEqualTo(1);
     }
 
     @Test

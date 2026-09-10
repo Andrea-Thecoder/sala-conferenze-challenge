@@ -8,11 +8,14 @@ import jakarta.ws.rs.ForbiddenException;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import java.util.Set;
 import java.util.UUID;
 
 @ApplicationScoped
 @Slf4j
 public class JwtInspector {
+
+    private static final Set<Role> ELEVATED_ROLES = Set.of(Role.ADMIN, Role.ORGANIZER);
 
     @Inject
     JsonWebToken jwt;
@@ -42,11 +45,16 @@ public class JwtInspector {
     }
 
     /**
-     * Regola condivisa da User e Booking: una CUSTOMER può accedere solo alle
-     * proprie risorse, ADMIN/ORGANIZER a quelle di chiunque.
+     * Regola condivisa da User e Booking: si può accedere alle proprie risorse, o a
+     * quelle di chiunque se il ruolo è ADMIN/ORGANIZER. Allow-list, non deny-list:
+     * un ruolo assente/non mappabile (claim "groups" mancante o non riconosciuto) non
+     * è più trattato come "non CUSTOMER quindi consentito" — deve comunque trattarsi
+     * del proprietario della risorsa. Fail-closed di default.
      */
     public void checkAccessAllowed(UUID targetUserId) {
-        if (hasRole(Role.CUSTOMER) && !sameSubject(targetUserId)) {
+        Role role = getRole();
+        boolean elevated = role != null && ELEVATED_ROLES.contains(role);
+        if (!elevated && !sameSubject(targetUserId)) {
             log.error("JwtInspector - checkAccessAllowed : JWT subject {} attempted to access a resource belonging to {}",
                     getSubject(), targetUserId);
             throw new ForbiddenException("You are not allowed to access this resource.");

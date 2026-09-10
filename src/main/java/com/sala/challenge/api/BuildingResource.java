@@ -69,7 +69,7 @@ public class BuildingResource {
                     content = @Content(schema = @Schema(implementation = DetailBuildingDTO.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Building not found",
+            @APIResponse(responseCode = "400", description = "Building not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public DetailBuildingDTO getBuildingById(
@@ -100,13 +100,11 @@ public class BuildingResource {
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Building updated",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
-            @APIResponse(responseCode = "400", description = "Invalid payload",
+            @APIResponse(responseCode = "400", description = "Invalid payload, or building not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN role required",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Building not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> updateBuilding(
@@ -130,7 +128,7 @@ public class BuildingResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN role required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Building not found",
+            @APIResponse(responseCode = "400", description = "Building not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> deleteBuilding(

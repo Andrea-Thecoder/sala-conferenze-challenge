@@ -66,7 +66,7 @@ public class ConferenceHallService {
      * NotFoundException) per una sala disabilitata vista da un CUSTOMER: se un caso
      * restituisse 404 e l'altro 400, lo status code diverso diventerebbe di per sé
      * un modo per distinguere "non esiste" da "esiste ma è disabilitata" — esattamente
-     * l'enumerazione che questo controllo deve evitare (CODE_REVIEW.md finding #2).
+     * l'enumerazione che questo controllo deve evitare.
      */
     public DetailConferenceHallDTO getConferenceHallDetailById(UUID id) {
         ConferenceHall conferenceHall = conferenceHallRepository.getConferenceHallById(id);

@@ -1,6 +1,5 @@
 package com.sala.challenge.repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,14 +43,6 @@ public class ConferenceHallRepositoryImpl implements ConferenceHallRepository {
     }
 
     @Override
-    public List<ConferenceHall> findAll(int page, int size) {
-        return db.find(ConferenceHall.class)
-                .setFirstRow(page * size)
-                .setMaxRows(size)
-                .findList();
-    }
-
-    @Override
     public void save(ConferenceHall entity, Transaction tx) {
         entity.save(tx);
     }
@@ -67,11 +58,6 @@ public class ConferenceHallRepositoryImpl implements ConferenceHallRepository {
         log.info("ConferenceHallRepository - delete: Delete conference hall with id {}", id);
         ConferenceHall conferenceHall = getConferenceHallById(id);
         conferenceHall.delete(tx);
-    }
-
-    @Override
-    public long count() {
-        return db.find(ConferenceHall.class).findCount();
     }
 
     @Override

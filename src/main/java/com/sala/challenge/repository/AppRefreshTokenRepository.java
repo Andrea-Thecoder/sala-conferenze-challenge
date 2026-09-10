@@ -1,5 +1,6 @@
 package com.sala.challenge.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -43,4 +44,15 @@ public interface AppRefreshTokenRepository {
     List<AppRefreshToken> revokeAllByFamilyId(UUID familyId, Transaction tx);
 
     List<AppRefreshToken> revokeAllByUserId(UUID userId, Transaction tx);
+
+    /**
+     * Cancella i refresh token scaduti (expires_at nel passato) che nessun altro
+     * token referenzia più via replaced_by_id — la FK auto-referenziale è "on delete
+     * restrict", quindi un token in mezzo a una catena di rotazione non può essere
+     * cancellato finché il token precedente della catena continua a puntarlo.
+     * Cancellando ripetutamente solo le "foglie" (i più recenti di ogni catena
+     * scaduta), a ogni giro il predecessore diventa a sua volta una foglia: la
+     * cancellazione converge sull'intera catena scaduta in poche iterazioni.
+     */
+    int deleteExpiredOrphaned(LocalDateTime threshold);
 }

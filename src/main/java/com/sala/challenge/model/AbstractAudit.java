@@ -42,12 +42,14 @@ public abstract class AbstractAudit extends Model {
     @Schema(hidden = true)
     @JsonIgnore
     @Column(name = "created_at", nullable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime createdAt;
 
     @WhenModified
     @Schema(hidden = true)
     @JsonIgnore
     @Column(name = "updated_at", nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime updatedAt;
 
     @WhoCreated

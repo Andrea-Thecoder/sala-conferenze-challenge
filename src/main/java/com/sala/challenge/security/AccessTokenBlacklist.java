@@ -46,8 +46,7 @@ public class AccessTokenBlacklist {
     /**
      * Se anche i retry falliscono (Redis giù più a lungo di un blip transitorio), la
      * scrittura resta persa: nessuna coda di recovery. Rischio accettato consapevolmente,
-     * non un'omissione — vedi SESSION_STATUS.md per i dettagli della valutazione: la rete
-     * di sicurezza enterprise-standard per questo caso (dual-write DB→Redis) sarebbe un
+     * non un'omissione: la rete di sicurezza enterprise-standard per questo caso (dual-write DB→Redis) sarebbe un
      * transactional outbox su Postgres, non una coda in-memory (che comunque non
      * reggerebbe con più di un'istanza dell'app). Costruirlo non è proporzionato
      * all'impatto reale: un utente revocato proprio nell'istante di un'interruzione Redis

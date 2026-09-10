@@ -23,12 +23,16 @@ public class BaseDetailBookingDTO {
 
     public static BaseDetailBookingDTO of(Booking booking) {
         BaseDetailBookingDTO dto = new BaseDetailBookingDTO();
-        dto.setId(booking.getId());
-        dto.setConferenceHallId(booking.getConferenceHall().getId());
-        dto.setStartDateTime(booking.getStartDateTime());
-        dto.setEndDateTime(booking.getEndDateTime());
-        dto.setTotalCost(booking.getTotalCost());
-        dto.setPaid(booking.isPaid());
+        dto.populate(booking);
         return dto;
+    }
+
+    protected void populate(Booking booking) {
+        this.id = booking.getId();
+        this.conferenceHallId = booking.getConferenceHall().getId();
+        this.startDateTime = booking.getStartDateTime();
+        this.endDateTime = booking.getEndDateTime();
+        this.totalCost = booking.getTotalCost();
+        this.paid = booking.isPaid();
     }
 }

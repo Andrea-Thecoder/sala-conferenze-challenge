@@ -1,6 +1,5 @@
 package com.sala.challenge.repository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -39,14 +38,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public List<User> findAll(int page, int size) {
-        return database.find(User.class)
-                .setFirstRow(page * size)
-                .setMaxRows(size)
-                .findList();
-    }
-
-    @Override
     public void save(User entity, Transaction tx) {
         entity.save(tx);
     }
@@ -62,11 +53,6 @@ public class UserRepositoryImpl implements UserRepository {
         log.info("UserRepository - delete: Delete user with id {}", id);
         User user = getUserById(id);
         user.delete(tx);
-    }
-
-    @Override
-    public long count() {
-        return database.find(User.class).findCount();
     }
 
     @Override

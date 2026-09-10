@@ -2,6 +2,7 @@ package com.sala.challenge.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.ebean.Model;
+import io.ebean.annotation.History;
 import io.ebean.annotation.Index;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@History
 public class AppRefreshToken extends Model {
 
     @Id

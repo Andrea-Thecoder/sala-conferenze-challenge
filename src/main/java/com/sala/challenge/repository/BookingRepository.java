@@ -14,8 +14,6 @@ public interface BookingRepository extends GenericRepository<Booking, UUID> {
 
     List<Booking> findByUserId(UUID userId);
 
-    boolean existsOverlapping(UUID conferenceHallId, LocalDateTime start, LocalDateTime end);
-
     boolean existsOverlapping(UUID conferenceHallId, LocalDateTime start, LocalDateTime end, UUID excludeBookingId);
 
     PagedList<Booking> search(BookingSearchRequest request, UUID userConstraint);

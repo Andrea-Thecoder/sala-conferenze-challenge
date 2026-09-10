@@ -75,13 +75,11 @@ public class BookingResource {
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Batch processed (see payload for per-item results)",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
-            @APIResponse(responseCode = "400", description = "Invalid payload",
+            @APIResponse(responseCode = "400", description = "Invalid payload, or user not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN or ORGANIZER role required",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "User not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<InsertStatusDTO> createBookingsForUser(
@@ -107,7 +105,7 @@ public class BookingResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "A CUSTOMER targeting another user's booking",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Booking not found",
+            @APIResponse(responseCode = "400", description = "Booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public DetailBookingDTO getBookingById(
@@ -137,13 +135,11 @@ public class BookingResource {
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Booking rescheduled if the payload is absent; otherwise rejected for the reason in the payload",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
-            @APIResponse(responseCode = "400", description = "Invalid payload",
+            @APIResponse(responseCode = "400", description = "Invalid payload, or booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "A CUSTOMER targeting another user's booking",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<BookingInsertStatus> updateBooking(
@@ -166,13 +162,11 @@ public class BookingResource {
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Booking rescheduled if the payload is absent; otherwise rejected for the reason in the payload",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
-            @APIResponse(responseCode = "400", description = "Invalid payload or booking does not belong to the given user",
+            @APIResponse(responseCode = "400", description = "Invalid payload, booking does not belong to the given user, or booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN or ORGANIZER role required",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<BookingInsertStatus> updateBookingForUser(
@@ -200,7 +194,7 @@ public class BookingResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "A CUSTOMER targeting another user's booking",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Booking not found",
+            @APIResponse(responseCode = "400", description = "Booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> deleteBooking(
@@ -218,13 +212,11 @@ public class BookingResource {
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Booking deleted",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
-            @APIResponse(responseCode = "400", description = "Booking does not belong to the given user",
+            @APIResponse(responseCode = "400", description = "Booking does not belong to the given user, or booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN or ORGANIZER role required",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Booking not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> deleteBookingForUser(

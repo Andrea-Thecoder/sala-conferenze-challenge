@@ -32,9 +32,12 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 /**
  * @Authenticated a livello di classe: nessun endpoint pubblico, serve sempre un
  * access token valido. La creazione utente resta su /auth/register (self-service,
- * senza token) — non duplicata qui. findAll/deleteUser sono ristretti oltre
- * l'autenticazione ad ADMIN/ORGANIZER: elencare o cancellare utenti arbitrari non è
- * un'azione che un qualunque utente loggato (es. CUSTOMER) deve poter fare.
+ * senza token) — non duplicata qui. findAll è ristretto oltre l'autenticazione ad
+ * ADMIN/ORGANIZER: elencare utenti arbitrari non è un'azione che un qualunque utente
+ * loggato (es. CUSTOMER) deve poter fare. deleteUser è ADMIN-only (non anche
+ * ORGANIZER): anonimizza in modo irreversibile nome/email/telefono/password e
+ * revoca ogni sessione — un ORGANIZER non deve poter fare più danno di quanto gli
+ * sia concesso da /auth/users/{userId}/revoke, che è ADMIN-only.
  */
 @Path("/users")
 @Authenticated
@@ -107,7 +110,7 @@ public class UserResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "A CUSTOMER targeting another user",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "User not found",
+            @APIResponse(responseCode = "400", description = "User not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public DetailUserDTO getUserById(
@@ -136,16 +139,16 @@ public class UserResource {
 
     @DELETE
     @Path("/{userId}")
-    @RolesAllowed({"ADMIN", "ORGANIZER"})
-    @Operation(summary = "Delete a user", description = "GDPR-style erasure: does not physically remove the account (booking/refresh-token history must be preserved), but irreversibly anonymizes its identifying data (name, email, phone, password) and disables it (active=false, role=REVOKED), revoking every active session. Requires the ADMIN or ORGANIZER role.")
+    @RolesAllowed("ADMIN")
+    @Operation(summary = "Delete a user", description = "GDPR-style erasure: does not physically remove the account (booking/refresh-token history must be preserved), but irreversibly anonymizes its identifying data (name, email, phone, password) and disables it (active=false, role=REVOKED), revoking every active session. Requires the ADMIN role.")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "User deleted (anonymized and revoked)",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "403", description = "ADMIN or ORGANIZER role required",
+            @APIResponse(responseCode = "403", description = "ADMIN role required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "User not found",
+            @APIResponse(responseCode = "400", description = "User not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> deleteUser(

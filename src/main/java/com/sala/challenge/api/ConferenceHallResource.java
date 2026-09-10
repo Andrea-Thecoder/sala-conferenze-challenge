@@ -84,7 +84,7 @@ public class ConferenceHallResource {
                     content = @Content(schema = @Schema(implementation = DetailConferenceHallDTO.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Conference hall not found",
+            @APIResponse(responseCode = "400", description = "Conference hall not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public DetailConferenceHallDTO getConferenceHallById(
@@ -115,13 +115,11 @@ public class ConferenceHallResource {
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Conference hall updated",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
-            @APIResponse(responseCode = "400", description = "Invalid payload",
+            @APIResponse(responseCode = "400", description = "Invalid payload, or conference hall not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN or ORGANIZER role required",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Conference hall not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> updateConferenceHall(
@@ -145,7 +143,7 @@ public class ConferenceHallResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN or ORGANIZER role required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Conference hall not found",
+            @APIResponse(responseCode = "400", description = "Conference hall not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> disableConferenceHall(
@@ -167,7 +165,7 @@ public class ConferenceHallResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN role required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "Conference hall not found",
+            @APIResponse(responseCode = "400", description = "Conference hall not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> deleteConferenceHall(

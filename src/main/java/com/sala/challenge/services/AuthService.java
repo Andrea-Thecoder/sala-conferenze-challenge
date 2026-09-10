@@ -17,6 +17,7 @@ import com.sala.challenge.security.RefreshTokenHasher;
 import io.ebean.Database;
 import io.ebean.Transaction;
 import io.smallrye.jwt.build.Jwt;
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +27,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,6 +56,18 @@ public class AuthService {
     @Inject
     JwtInspector jwtInspector;
 
+    /**
+     * Hash BCrypt "civetta" con lo stesso costo delle password reali (stesso
+     * bcryptRounds del profilo attivo): usato quando l'email non esiste, per far
+     * comunque eseguire un confronto BCrypt e non rivelare via timing (~5ms vs
+     * ~250-400ms) se un'email è registrata o no.
+     */
+    private String dummyPasswordHash;
+
+    @PostConstruct
+    void initDummyPasswordHash() {
+        dummyPasswordHash = PasswordEncoder.hash(UUID.randomUUID().toString(), authConfig.bcryptRounds());
+    }
 
     public UUID registerUser(UserRegistrationDTO dto) {
         log.info("AuthService - registerUser : Starting Registration for new user.");
@@ -95,8 +109,14 @@ public class AuthService {
 
             if (current.getRevokedAt() != null) {
                 log.error("AuthService - refresh : Reuse detected for family {}, revoking entire family", current.getFamilyId());
+                UUID compromisedUserId = current.getUser().getId();
                 refreshTokenRepository.revokeAllByFamilyId(current.getFamilyId(), tx);
                 tx.commit();
+                // Il riuso di un refresh token già revocato è il segnale di un furto di
+                // sessione in corso: chi lo ha rubato può avere ancora in mano un access
+                // token valido per i minuti restanti, va bruciato subito insieme alla
+                // famiglia di refresh token, non lasciato scadere naturalmente.
+                blacklistAllAccessTokensForUser(compromisedUserId);
                 throw new ServiceException("Refresh token reuse detected. Please login again");
             }
 
@@ -153,6 +173,10 @@ public class AuthService {
     public void changeRole(UUID userId, RoleUpdateDTO dto) {
         log.info("AuthService - changeRole : Changing role of user {} to {}", userId, dto.getRole());
         userService.changeRole(userId, dto);
+        // Un access token già emesso porta il VECCHIO ruolo nel claim "groups" ed è
+        // stateless: senza questo, un ADMIN appena declassato continuerebbe a passare
+        // ogni @RolesAllowed("ADMIN") fino alla scadenza naturale del token.
+        blacklistAllAccessTokensForUser(userId);
         log.info("AuthService - changeRole : Role of user {} changed to {}", userId, dto.getRole());
     }
 
@@ -250,12 +274,18 @@ public class AuthService {
     }
 
     private User getUserByEmail(LoginCredentialsDTO credentials) {
-        return userService.findByEmail(credentials.getEmail())
-                .filter(u -> PasswordEncoder.matches(credentials.getPassword(), u.getPassword()))
-                .orElseThrow(() -> {
-                    log.error("AuthService - getUserByEmail : User not found for {}", credentials.getEmail());
-                    return new ServiceException("Invalid email or password");
-                });
+        Optional<User> maybeUser = userService.findByEmail(credentials.getEmail());
+        String hashToVerify = maybeUser.map(User::getPassword).orElse(dummyPasswordHash);
+        // Il confronto BCrypt gira SEMPRE, esista o no l'utente: altrimenti l'assenza
+        // del confronto (email inesistente) risponderebbe in ~5ms contro i ~250-400ms
+        // di una password sbagliata su un'email valida, rivelando via timing quali
+        // email sono registrate anche se il messaggio d'errore resta identico.
+        boolean passwordMatches = PasswordEncoder.matches(credentials.getPassword(), hashToVerify);
+        if (maybeUser.isEmpty() || !passwordMatches) {
+            log.error("AuthService - getUserByEmail : Invalid login attempt for {}", credentials.getEmail());
+            throw new ServiceException("Invalid email or password");
+        }
+        return maybeUser.get();
     }
 
     private String generateToken(User user) {

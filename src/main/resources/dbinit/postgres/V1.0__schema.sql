@@ -21,8 +21,8 @@ create table a_booking (
   total_cost                    NUMERIC(12,2) not null,
   paid                          boolean default false not null,
   version                       bigint not null,
-  created_at                    timestamp not null,
-  updated_at                    timestamp not null,
+  created_at                    timestamptz not null,
+  updated_at                    timestamptz not null,
   created_by                    varchar(255) not null,
   updated_by                    varchar(255) not null,
   constraint pk_a_booking primary key (id)
@@ -31,8 +31,8 @@ create table a_booking (
 create table building (
   id                            uuid not null,
   version                       bigint not null,
-  created_at                    timestamp not null,
-  updated_at                    timestamp not null,
+  created_at                    timestamptz not null,
+  updated_at                    timestamptz not null,
   street                        varchar(255) not null,
   city                          varchar(100) not null,
   postal_code                   varchar(5) not null,
@@ -50,8 +50,8 @@ create table conference_hall (
   floor                         integer not null,
   enabled                       boolean default false not null,
   version                       bigint not null,
-  created_at                    timestamp not null,
-  updated_at                    timestamp not null,
+  created_at                    timestamptz not null,
+  updated_at                    timestamptz not null,
   name                          varchar(255) not null,
   note                          text,
   room_number                   varchar(20) not null,
@@ -64,18 +64,19 @@ create table app_user (
   id                            uuid not null,
   active                        boolean default false not null,
   version                       bigint not null,
-  created_at                    timestamp not null,
-  updated_at                    timestamp not null,
+  created_at                    timestamptz not null,
+  updated_at                    timestamptz not null,
   first_name                    varchar(100) not null,
   last_name                     varchar(100) not null,
   password                      varchar(255) not null,
   email                         varchar(255) not null,
-  phone_number                  varchar(20) not null,
+  phone_number                  varchar(16) not null,
   role                          varchar(9) not null,
   created_by                    varchar(255) not null,
   updated_by                    varchar(255) not null,
   constraint ck_app_user_role check ( role in ('ADMIN','ORGANIZER','CUSTOMER','REVOKED')),
   constraint uq_app_user_email unique (email),
+  constraint uq_app_user_phone_number unique (phone_number),
   constraint pk_app_user primary key (id)
 );
 
@@ -109,7 +110,5 @@ create index if not exists ix_conference_hall_price_per_hour on conference_hall 
 create index if not exists ix_conference_hall_enabled on conference_hall (enabled);
 create index if not exists idx_app_user_firstname_lastname on app_user (first_name,last_name);
 create index if not exists ix_app_user_last_name on app_user (last_name);
-create index if not exists ix_app_user_password on app_user (password);
-create index if not exists ix_app_user_phone_number on app_user (phone_number);
 create index if not exists ix_app_user_role on app_user (role);
 create index if not exists ix_app_user_active on app_user (active);

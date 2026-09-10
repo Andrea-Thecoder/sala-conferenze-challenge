@@ -1,5 +1,6 @@
 package com.sala.challenge.model;
 
+import io.ebean.annotation.History;
 import io.ebean.annotation.Index;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
+@History
 public class ConferenceHall extends AbstractAudit {
 
     @Id

@@ -94,8 +94,15 @@ public class BookingService {
                 log.warn("BookingService - createBooking : Overlap detected at database level for hall {}", chrDTO.getConferenceHallId());
                 return new BookingInsertStatus(chrDTO.getConferenceHallId(), "Conference hall already booked for the selected time range");
             }
+            // Non rilanciare: createBookings() chiama questo metodo dentro un loop, una
+            // transazione per prenotazione richiesta. Le prenotazioni precedenti del
+            // batch sono già committate — un throw qui le nasconderebbe al client
+            // (richiesta fallita in blocco) pur restando salvate nel DB. Si logga
+            // l'errore e si riporta il fallimento nello status della singola voce,
+            // così il batch prosegue e il client vede esattamente cosa è andato a
+            // buon fine e cosa no.
             log.error("BookingService - createBooking : Error creating booking", e);
-            throw new ServiceException("Error while creating booking. Try again later.");
+            return new BookingInsertStatus(chrDTO.getConferenceHallId(), "Error while creating this booking. Try again later.");
         }
     }
 

@@ -122,7 +122,7 @@ public class AuthResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN role required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "User not found",
+            @APIResponse(responseCode = "400", description = "User not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> activateUser(
@@ -139,13 +139,11 @@ public class AuthResource {
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Role changed",
                     content = @Content(schema = @Schema(implementation = SimpleResultDTO.class))),
-            @APIResponse(responseCode = "400", description = "REVOKED role requested here (use the revoke endpoint instead)",
+            @APIResponse(responseCode = "400", description = "REVOKED role requested here (use the revoke endpoint instead), or user not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "401", description = "Authentication required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN role required",
-                    content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "User not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> changeRole(
@@ -168,7 +166,7 @@ public class AuthResource {
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
             @APIResponse(responseCode = "403", description = "ADMIN role required",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class))),
-            @APIResponse(responseCode = "404", description = "User not found",
+            @APIResponse(responseCode = "400", description = "User not found",
                     content = @Content(schema = @Schema(implementation = ExceptionResponse.class)))
     })
     public SimpleResultDTO<Void> revokeUser(

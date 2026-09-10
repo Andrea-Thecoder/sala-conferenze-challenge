@@ -38,7 +38,6 @@ import com.sala.challenge.model.enumerator.Role;
 import com.sala.challenge.repository.UserRepository;
 import com.sala.challenge.security.JwtInspector;
 import com.sala.challenge.security.PasswordEncoder;
-import com.sala.challenge.services.AuthService;
 import com.sala.challenge.services.BookingService;
 import com.sala.challenge.services.UserService;
 import com.sala.challenge.unit.TestPagedLists;
@@ -64,9 +63,6 @@ class UserServiceTest {
 
     @Mock
     BookingService bookingService;
-
-    @Mock
-    AuthService authService;
 
     @Mock
     Transaction transaction;
@@ -408,42 +404,10 @@ class UserServiceTest {
         assertThat(thrown).isInstanceOf(ServiceException.class);
     }
 
-    // ---- revokeUser(UUID) ----
-
-    @Test
-    void revokeUser_validUserId_deactivatesAndRevokesRole() {
-        User existing = user(Role.CUSTOMER, true);
-        when(userRepository.getUserById(existing.getId())).thenReturn(existing);
-        when(database.beginTransaction()).thenReturn(transaction);
-
-        userService.revokeUser(existing.getId());
-
-        assertThat(existing).extracting(User::isActive, User::getRole).containsExactly(false, Role.REVOKED);
-    }
-
-    @Test
-    void revokeUser_transactionFails_throwsServiceException() {
-        User existing = user(Role.CUSTOMER, true);
-        when(userRepository.getUserById(existing.getId())).thenReturn(existing);
-        when(database.beginTransaction()).thenReturn(transaction);
-        doThrow(new RuntimeException("boom")).when(userRepository).update(any(), eq(transaction));
-        UUID userId = existing.getId();
-
-        Throwable thrown = catchThrowable(() -> userService.revokeUser(userId));
-
-        assertThat(thrown).isInstanceOf(ServiceException.class);
-    }
-
-    // ---- deleteUser ----
-
-    @Test
-    void deleteUser_delegatesToAuthService() {
-        UUID userId = UUID.randomUUID();
-
-        userService.deleteUser(userId);
-
-        verify(authService).deleteUser(userId);
-    }
+    // ---- revokeUser(UUID, Transaction) ----
+    // Solo la variante 2-arg esiste in produzione (chiamata da AuthService dentro una
+    // transazione già aperta) — vedi AuthServiceTest per la copertura end-to-end di
+    // revoke/delete, non duplicata qui.
 
     // ---- anonymizeUser ----
     // Non testabile direttamente da qui: è package-private in com.sala.challenge.services,
