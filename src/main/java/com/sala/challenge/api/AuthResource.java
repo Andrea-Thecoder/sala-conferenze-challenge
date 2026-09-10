@@ -7,6 +7,7 @@ import com.sala.challenge.dto.auth.RefreshTokenDTO;
 import com.sala.challenge.dto.user.RoleUpdateDTO;
 import com.sala.challenge.dto.user.UserRegistrationDTO;
 import com.sala.challenge.exception.ExceptionResponse;
+import com.sala.challenge.security.RateLimited;
 import com.sala.challenge.services.AuthService;
 import io.quarkus.security.Authenticated;
 import jakarta.annotation.security.RolesAllowed;
@@ -50,6 +51,7 @@ public class AuthResource {
 
     @POST
     @Path("/register")
+    @RateLimited
     @Operation(summary = "Register a new user", description = "Creates a new user (organizer or customer) with a hashed password; does not issue any token, the user must then authenticate via /login.")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "User created",
@@ -69,6 +71,7 @@ public class AuthResource {
 
     @POST
     @Path("/login")
+    @RateLimited
     @Operation(summary = "Authenticate a user", description = "Verifies the credentials and issues a new token pair: a short-lived JWT access token and a long-lived raw refresh token (the client must keep it for /refresh and /logout).")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Login successful, token pair issued",
