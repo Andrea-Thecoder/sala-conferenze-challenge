@@ -24,12 +24,14 @@ class UserResourceSecurityIT extends AbstractIntegrationTest {
     private User customer;
     private User otherCustomer;
     private User admin;
+    private User organizer;
 
     @AfterEach
     void cleanup() {
         if (customer != null) deleteUser(customer.getId());
         if (otherCustomer != null) deleteUser(otherCustomer.getId());
         if (admin != null) deleteUser(admin.getId());
+        if (organizer != null) deleteUser(organizer.getId());
     }
 
     @Test
@@ -132,6 +134,20 @@ class UserResourceSecurityIT extends AbstractIntegrationTest {
         RestAssured.given()
                 .header("Authorization", "Bearer " + token)
                 .when().delete("/users/" + otherCustomer.getId())
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    void deleteUser_asOrganizer_returnsForbidden() {
+        String organizerEmail = "usr-" + UUID.randomUUID() + "@example.com";
+        organizer = seedUser(organizerEmail, Role.ORGANIZER, true);
+        customer = seedUser("usr-" + UUID.randomUUID() + "@example.com", Role.CUSTOMER, true);
+        String token = loginAndGetAccessToken(organizerEmail);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + token)
+                .when().delete("/users/" + customer.getId())
                 .then()
                 .statusCode(403);
     }

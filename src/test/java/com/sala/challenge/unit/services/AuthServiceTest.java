@@ -220,6 +220,16 @@ class AuthServiceTest {
     }
 
     @Test
+    void login_userNotFound_stillInvokesPasswordComparison() {
+        when(userService.findByEmail(anyString())).thenReturn(Optional.empty());
+        passwordEncoderMock.when(() -> PasswordEncoder.matches(anyString(), any())).thenReturn(false);
+
+        catchThrowable(() -> authService.login(credentials("ghost@example.com", "Password1!")));
+
+        passwordEncoderMock.verify(() -> PasswordEncoder.matches(eq("Password1!"), any()));
+    }
+
+    @Test
     void login_wrongPassword_throwsServiceException() {
         User user = activeCustomer();
         when(userService.findByEmail(user.getEmail())).thenReturn(Optional.of(user));

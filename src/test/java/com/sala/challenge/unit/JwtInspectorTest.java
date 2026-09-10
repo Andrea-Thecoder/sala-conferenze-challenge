@@ -149,4 +149,23 @@ class JwtInspectorTest {
 
         assertThatCode(() -> jwtInspector.checkAccessAllowed(UUID.randomUUID())).doesNotThrowAnyException();
     }
+
+    @Test
+    void checkAccessAllowed_unmappableRoleAccessingOwnResource_doesNotThrow() {
+        UUID subject = UUID.randomUUID();
+        when(jwt.getGroups()).thenReturn(Set.of());
+        when(jwt.getSubject()).thenReturn(subject.toString());
+
+        assertThatCode(() -> jwtInspector.checkAccessAllowed(subject)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void checkAccessAllowed_unmappableRoleAccessingOtherResource_throwsForbiddenException() {
+        when(jwt.getGroups()).thenReturn(Set.of());
+        when(jwt.getSubject()).thenReturn(UUID.randomUUID().toString());
+
+        Throwable thrown = catchThrowable(() -> jwtInspector.checkAccessAllowed(UUID.randomUUID()));
+
+        assertThat(thrown).isInstanceOf(ForbiddenException.class);
+    }
 }

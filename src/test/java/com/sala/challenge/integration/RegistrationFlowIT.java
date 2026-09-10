@@ -64,6 +64,24 @@ class RegistrationFlowIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void register_revokedRole_returnsBadRequest() {
+        String body = "{"
+                + "\"firstName\":\"Mario\","
+                + "\"lastName\":\"Rossi\","
+                + "\"email\":\"register-" + UUID.randomUUID() + "@example.com\","
+                + "\"password\":\"Password1!\","
+                + "\"phoneNumber\":\"+393331234567\","
+                + "\"role\":\"REVOKED\"}";
+
+        RestAssured.given()
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when().post("/auth/register")
+                .then()
+                .statusCode(400);
+    }
+
+    @Test
     void register_afterAdminActivation_canLogin() {
         String adminEmail = "register-" + UUID.randomUUID() + "@example.com";
         admin = seedUser(adminEmail, Role.ADMIN, true);
