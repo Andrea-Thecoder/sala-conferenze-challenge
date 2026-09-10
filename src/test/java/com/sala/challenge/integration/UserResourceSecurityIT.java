@@ -64,6 +64,22 @@ class UserResourceSecurityIT extends AbstractIntegrationTest {
     }
 
     @Test
+    void updatePhoneNumber_adminTargetingAnotherUser_returnsSuccess() {
+        String adminEmail = "usr-" + UUID.randomUUID() + "@example.com";
+        admin = seedUser(adminEmail, Role.ADMIN, true);
+        customer = seedUser("usr-" + UUID.randomUUID() + "@example.com", Role.CUSTOMER, true);
+        String adminToken = loginAndGetAccessToken(adminEmail);
+
+        RestAssured.given()
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(ContentType.JSON)
+                .body("{\"phoneNumber\":\"+393338888888\"}")
+                .when().patch("/users/" + customer.getId() + "/phone-number")
+                .then()
+                .statusCode(200);
+    }
+
+    @Test
     void changePassword_adminTargetingAnotherUser_returnsForbidden() {
         String adminEmail = "usr-" + UUID.randomUUID() + "@example.com";
         admin = seedUser(adminEmail, Role.ADMIN, true);

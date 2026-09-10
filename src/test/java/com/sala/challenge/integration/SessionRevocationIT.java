@@ -1,5 +1,7 @@
 package com.sala.challenge.integration;
 
+import static org.hamcrest.Matchers.equalTo;
+
 import java.util.UUID;
 
 import org.junit.jupiter.api.AfterEach;
@@ -53,6 +55,27 @@ class SessionRevocationIT extends AbstractIntegrationTest {
                 .when().get("/users/" + target.getId())
                 .then()
                 .statusCode(401);
+    }
+
+    @Test
+    void revokeUser_thenLogin_returnsBadRequestWithGenericMessage() {
+        String adminEmail = "revoke-" + UUID.randomUUID() + "@example.com";
+        String targetEmail = "revoke-" + UUID.randomUUID() + "@example.com";
+        admin = seedUser(adminEmail, Role.ADMIN, true);
+        target = seedUser(targetEmail, Role.CUSTOMER, true);
+        String adminToken = loginAndGetAccessToken(adminEmail);
+        RestAssured.given()
+                .header("Authorization", "Bearer " + adminToken)
+                .when().delete("/auth/users/" + target.getId() + "/revoke")
+                .then().statusCode(200);
+
+        RestAssured.given()
+                .contentType("application/json")
+                .body("{\"email\":\"" + targetEmail + "\",\"password\":\"Password1!\"}")
+                .when().post("/auth/login")
+                .then()
+                .statusCode(400)
+                .body("violations[0].message", equalTo("Invalid email or password"));
     }
 
     @Test
