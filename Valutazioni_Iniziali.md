@@ -1,13 +1,13 @@
-Sala Backend Challenge 
+Sala Backend Challenge
 
 Valutazioni iniziali:
 
-Per soddisfare la richiesta del cliente ho selezionato il seguente stack:
-- Quarkus last release + java 21
-- Postgresql 18 
-- Docker per il docker compose che crea in locale il database
-
-Postgresql:
-Ho scelto il database relazionale in quanto le entità mostrano una struttura ben definita e necessitano di correlazione tra di esse (relazione) da qui la scelta è ricaduta per ovviamente su un RDB. La scelta di Postgresql in quanto è un opensource d'alta affidabilità, sempre aggiornato e con integrate gestioni avanzate come l'async delle query o la gestione degli UUID e dei Boolean.
-
+Partirei dalle configurazioni di base e dal modellare le entity, per poi procedere con
+repository, service e DTO in parallelo, lasciando i test per ultimi (progetto piccolo,
+approccio a waterfall) così da non doverli riscrivere in corso d'opera. 
+Ritengo più critico
+gestire correttamente la race condition sulle prenotazioni sovrapposte e
+l'autenticazione/autorizzazione, essendo le aree con più margine di errore in un sistema
+reale. 
+Dubbio principale: non è stato evidenziato un livello di Auth, gestirò la situazione con un JWT Sign custom rispetto all'utilizzo di un provider come Keycloak.
 
